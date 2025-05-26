@@ -9,13 +9,14 @@ import (
 // AiExtensionApplyConfiguration represents a declarative configuration of the AiExtension type for use
 // with apply.
 type AiExtensionApplyConfiguration struct {
-	Enabled         *bool                               `json:"enabled,omitempty"`
-	Image           *ImageApplyConfiguration            `json:"image,omitempty"`
-	SecurityContext *v1.SecurityContext                 `json:"securityContext,omitempty"`
-	Resources       *v1.ResourceRequirements            `json:"resources,omitempty"`
-	Env             []v1.EnvVar                         `json:"env,omitempty"`
-	Ports           []v1.ContainerPort                  `json:"ports,omitempty"`
-	Stats           *AiExtensionStatsApplyConfiguration `json:"stats,omitempty"`
+	Enabled         *bool                                 `json:"enabled,omitempty"`
+	Image           *ImageApplyConfiguration              `json:"image,omitempty"`
+	SecurityContext *v1.SecurityContext                   `json:"securityContext,omitempty"`
+	Resources       *v1.ResourceRequirements              `json:"resources,omitempty"`
+	Env             []v1.EnvVar                           `json:"env,omitempty"`
+	Ports           []v1.ContainerPort                    `json:"ports,omitempty"`
+	Stats           *AiExtensionStatsApplyConfiguration   `json:"stats,omitempty"`
+	Tracing         *AiExtensionTracingApplyConfiguration `json:"tracing,omitempty"`
 }
 
 // AiExtensionApplyConfiguration constructs a declarative configuration of the AiExtension type for use with
@@ -81,5 +82,13 @@ func (b *AiExtensionApplyConfiguration) WithPorts(values ...v1.ContainerPort) *A
 // If called multiple times, the Stats field is set to the value of the last call.
 func (b *AiExtensionApplyConfiguration) WithStats(value *AiExtensionStatsApplyConfiguration) *AiExtensionApplyConfiguration {
 	b.Stats = value
+	return b
+}
+
+// WithTracing sets the Tracing field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the Tracing field is set to the value of the last call.
+func (b *AiExtensionApplyConfiguration) WithTracing(value *AiExtensionTracingApplyConfiguration) *AiExtensionApplyConfiguration {
+	b.Tracing = value
 	return b
 }

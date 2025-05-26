@@ -239,6 +239,7 @@ func getAIExtensionValues(config *v1alpha1.AiExtension) (*helmAIExtension, error
 		Env:             config.GetEnv(),
 		Ports:           config.GetPorts(),
 		Stats:           byt,
+		Tracing:         config.GetTracing(),
 	}, nil
 }
 

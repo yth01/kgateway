@@ -156,6 +156,7 @@ type helmAIExtension struct {
 	Env             []corev1.EnvVar              `json:"env,omitempty"`
 	Ports           []corev1.ContainerPort       `json:"ports,omitempty"`
 	Stats           []byte                       `json:"stats,omitempty"`
+	Tracing         *v1alpha1.AiExtensionTracing `json:"tracing,omitempty"`
 }
 
 type helmInferenceExtension struct {

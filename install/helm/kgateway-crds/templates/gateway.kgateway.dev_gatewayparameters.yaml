@@ -272,6 +272,19 @@ spec:
                               type: object
                             type: array
                         type: object
+                      tracing:
+                        properties:
+                          endpoint:
+                            type: string
+                          insecure:
+                            type: boolean
+                          serviceName:
+                            type: string
+                        required:
+                        - endpoint
+                        - insecure
+                        - serviceName
+                        type: object
                     type: object
                   deployment:
                     properties:

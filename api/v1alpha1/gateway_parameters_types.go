@@ -636,6 +636,22 @@ type AiExtension struct {
 	//       metadataKey: "principal:iss"
 	// ```
 	Stats *AiExtensionStats `json:"stats,omitempty"`
+
+	// Tracing configuration for the AI Extension.
+	// The value is a raw JSON string that gets written to a ConfigMap as `tracing.json`.
+	// It allows users to configure OpenTelemetry tracing, such as setting endpoint, insecure options, etc.
+	//
+	// Example:
+	// ```yaml
+	// tracing: |
+	//   {
+	//     "endpoint": "http://otel-collector:4317",
+	//     "insecure": true
+	//   }
+	// ```
+	//
+	// +kubebuilder:validation:Optional
+	Tracing *AiExtensionTracing `json:"tracing,omitempty"`
 }
 
 func (in *AiExtension) GetEnabled() *bool {
@@ -687,11 +703,30 @@ func (in *AiExtension) GetStats() *AiExtensionStats {
 	return in.Stats
 }
 
+func (in *AiExtension) GetTracing() *AiExtensionTracing {
+	if in == nil {
+		return nil
+	}
+	return in.Tracing
+}
+
 type AiExtensionStats struct {
 	// Set of custom labels to be added to the request metrics.
 	// These will be added on each request which goes through the AI Extension.
 	// +optional
 	CustomLabels []*CustomLabel `json:"customLabels,omitempty"`
+}
+
+type AiExtensionTracing struct {
+	// OTLP gRPC endpoint for exporting traces.
+	// Example: http://otel-collector:4317
+	Endpoint string `json:"endpoint"`
+
+	// Whether to disable TLS when sending traces (i.e., use insecure gRPC).
+	Insecure bool `json:"insecure"`
+
+	// Logical service name used in trace data.
+	ServiceName string `json:"serviceName"`
 }
 
 func (in *AiExtensionStats) GetCustomLabels() []*CustomLabel {

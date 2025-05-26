@@ -717,6 +717,7 @@ func deepMergeAIExtension(dst, src *v1alpha1.AiExtension) *v1alpha1.AiExtension 
 	dst.Env = deepMergeSlices(dst.GetEnv(), src.GetEnv())
 	dst.Ports = deepMergeSlices(dst.GetPorts(), src.GetPorts())
 	dst.Stats = deepMergeAIExtensionStats(dst.GetStats(), src.GetStats())
+	dst.Tracing = mergePointers(dst.GetTracing(), src.GetTracing())
 
 	return dst
 }

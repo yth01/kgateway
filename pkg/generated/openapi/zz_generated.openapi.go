@@ -25,6 +25,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AgentGateway":                    schema_kgateway_v2_api_v1alpha1_AgentGateway(ref),
 		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtension":                     schema_kgateway_v2_api_v1alpha1_AiExtension(ref),
 		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionStats":                schema_kgateway_v2_api_v1alpha1_AiExtensionStats(ref),
+		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionTracing":              schema_kgateway_v2_api_v1alpha1_AiExtensionTracing(ref),
 		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AnthropicConfig":                 schema_kgateway_v2_api_v1alpha1_AnthropicConfig(ref),
 		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AwsAuth":                         schema_kgateway_v2_api_v1alpha1_AwsAuth(ref),
 		"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AwsBackend":                      schema_kgateway_v2_api_v1alpha1_AwsBackend(ref),
@@ -857,11 +858,17 @@ func schema_kgateway_v2_api_v1alpha1_AiExtension(ref common.ReferenceCallback) c
 							Ref:         ref("github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionStats"),
 						},
 					},
+					"tracing": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Tracing configuration for the AI Extension. The value is a raw JSON string that gets written to a ConfigMap as `tracing.json`. It allows users to configure OpenTelemetry tracing, such as setting endpoint, insecure options, etc.\n\nExample: ```yaml tracing: |\n  {\n    \"endpoint\": \"http://otel-collector:4317\",\n    \"insecure\": true\n  }\n```",
+							Ref:         ref("github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionTracing"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionStats", "github.com/kgateway-dev/kgateway/v2/api/v1alpha1.Image", "k8s.io/api/core/v1.ContainerPort", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecurityContext"},
+			"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionStats", "github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AiExtensionTracing", "github.com/kgateway-dev/kgateway/v2/api/v1alpha1.Image", "k8s.io/api/core/v1.ContainerPort", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecurityContext"},
 	}
 }
 
@@ -889,6 +896,43 @@ func schema_kgateway_v2_api_v1alpha1_AiExtensionStats(ref common.ReferenceCallba
 		},
 		Dependencies: []string{
 			"github.com/kgateway-dev/kgateway/v2/api/v1alpha1.CustomLabel"},
+	}
+}
+
+func schema_kgateway_v2_api_v1alpha1_AiExtensionTracing(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"endpoint": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OTLP gRPC endpoint for exporting traces. Example: http://otel-collector:4317",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"insecure": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether to disable TLS when sending traces (i.e., use insecure gRPC).",
+							Default:     false,
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"serviceName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Logical service name used in trace data.",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"endpoint", "insecure", "serviceName"},
+			},
+		},
 	}
 }
 

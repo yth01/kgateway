@@ -164,6 +164,9 @@ var schemaYAML = typed.YAMLObject(`types:
     - name: stats
       type:
         namedType: com.github.kgateway-dev.kgateway.v2.api.v1alpha1.AiExtensionStats
+    - name: tracing
+      type:
+        namedType: com.github.kgateway-dev.kgateway.v2.api.v1alpha1.AiExtensionTracing
 - name: com.github.kgateway-dev.kgateway.v2.api.v1alpha1.AiExtensionStats
   map:
     fields:
@@ -173,6 +176,21 @@ var schemaYAML = typed.YAMLObject(`types:
           elementType:
             namedType: com.github.kgateway-dev.kgateway.v2.api.v1alpha1.CustomLabel
           elementRelationship: atomic
+- name: com.github.kgateway-dev.kgateway.v2.api.v1alpha1.AiExtensionTracing
+  map:
+    fields:
+    - name: endpoint
+      type:
+        scalar: string
+      default: ""
+    - name: insecure
+      type:
+        scalar: boolean
+      default: false
+    - name: serviceName
+      type:
+        scalar: string
+      default: ""
 - name: com.github.kgateway-dev.kgateway.v2.api.v1alpha1.AnthropicConfig
   map:
     fields:
