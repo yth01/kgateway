@@ -120,23 +120,33 @@ func buildCertificateContext(tlsData *tlsData, tlsContext *envoytlsv3.CommonTlsC
 		return errors.New("invalid TLS config: for if providing a client certificate, both certChain and privateKey must be provided")
 	}
 
-	// Validate the certificate and key pair, and get a sanitized version of the certificate chain.
+	if tlsData.inlineDataSource {
+		return buildSecretBasedCertificates(tlsData, tlsContext)
+	}
+	return buildFileBasedCertificates(tlsData, tlsContext)
+}
+
+func buildSecretBasedCertificates(tlsData *tlsData, tlsContext *envoytlsv3.CommonTlsContext) error {
 	cleanedCertChain, err := cleanedSslKeyPair(tlsData.certChain, tlsData.privateKey)
 	if err != nil {
 		return fmt.Errorf("invalid certificate and key pair: %w", err)
 	}
 
-	dataSource := stringDataSourceGenerator(tlsData.inlineDataSource)
+	dataSource := stringDataSourceGenerator(true)
+	tlsContext.TlsCertificates = []*envoytlsv3.TlsCertificate{{
+		CertificateChain: dataSource(cleanedCertChain),
+		PrivateKey:       dataSource(tlsData.privateKey),
+	}}
 
-	certChainData := dataSource(cleanedCertChain)
-	privateKeyData := dataSource(tlsData.privateKey)
+	return nil
+}
 
-	tlsContext.TlsCertificates = []*envoytlsv3.TlsCertificate{
-		{
-			CertificateChain: certChainData,
-			PrivateKey:       privateKeyData,
-		},
-	}
+func buildFileBasedCertificates(tlsData *tlsData, tlsContext *envoytlsv3.CommonTlsContext) error {
+	dataSource := stringDataSourceGenerator(false)
+	tlsContext.TlsCertificates = []*envoytlsv3.TlsCertificate{{
+		CertificateChain: dataSource(tlsData.certChain),
+		PrivateKey:       dataSource(tlsData.privateKey),
+	}}
 
 	return nil
 }
