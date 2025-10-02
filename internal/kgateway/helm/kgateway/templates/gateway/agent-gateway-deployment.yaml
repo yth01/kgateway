@@ -22,7 +22,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "kgateway.gateway.selectorLabels" . | nindent 8 }}
+        {{- include "kgateway.gateway.podLabels" . | nindent 8 }}
         {{- with $gateway.extraPodLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

@@ -20,6 +20,7 @@ type HelmGateway struct {
 	Name             *string `json:"name,omitempty"`
 	GatewayName      *string `json:"gatewayName,omitempty"`
 	GatewayNamespace *string `json:"gatewayNamespace,omitempty"`
+	GatewayClassName *string `json:"gatewayClassName,omitempty"`
 	NameOverride     *string `json:"nameOverride,omitempty"`
 	FullnameOverride *string `json:"fullnameOverride,omitempty"`
 
