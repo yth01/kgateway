@@ -46,8 +46,12 @@ type kGatewayParameters struct {
 
 func (gp *GatewayParameters) WithExtraGatewayParameters(params ...deployer.ExtraGatewayParameters) *GatewayParameters {
 	for _, p := range params {
+		key := schema.GroupKind{Group: p.Group, Kind: p.Kind}
+		if _, ok := gp.extraHVGenerators[key]; ok {
+			panic(fmt.Sprintf("key already exists in the map: %v", key))
+		}
 		gp.knownGWParameters = append(gp.knownGWParameters, p.Object)
-		gp.extraHVGenerators[schema.GroupKind{Group: p.Group, Kind: p.Kind}] = p.Generator
+		gp.extraHVGenerators[key] = p.Generator
 	}
 	return gp
 }
