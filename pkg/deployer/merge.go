@@ -480,8 +480,8 @@ func deepMergeSdsContainer(dst, src *v1alpha1.SdsContainer) *v1alpha1.SdsContain
 		return src
 	}
 
-	dst.Image = deepMergeImage(dst.GetImage(), src.GetImage())
-	dst.SecurityContext = deepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
+	dst.Image = DeepMergeImage(dst.GetImage(), src.GetImage())
+	dst.SecurityContext = DeepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
 	dst.Resources = DeepMergeResourceRequirements(dst.GetResources(), src.GetResources())
 	dst.Bootstrap = deepMergeSdsBootstrap(dst.GetBootstrap(), src.GetBootstrap())
 
@@ -541,8 +541,8 @@ func deepMergeIstioContainer(dst, src *v1alpha1.IstioContainer) *v1alpha1.IstioC
 		return src
 	}
 
-	dst.Image = deepMergeImage(dst.GetImage(), src.GetImage())
-	dst.SecurityContext = deepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
+	dst.Image = DeepMergeImage(dst.GetImage(), src.GetImage())
+	dst.SecurityContext = DeepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
 	dst.Resources = DeepMergeResourceRequirements(dst.GetResources(), src.GetResources())
 
 	if src.GetLogLevel() != nil {
@@ -575,8 +575,8 @@ func deepMergeEnvoyContainer(dst, src *v1alpha1.EnvoyContainer) *v1alpha1.EnvoyC
 	}
 
 	dst.Bootstrap = deepMergeEnvoyBootstrap(dst.GetBootstrap(), src.GetBootstrap())
-	dst.Image = deepMergeImage(dst.GetImage(), src.GetImage())
-	dst.SecurityContext = deepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
+	dst.Image = DeepMergeImage(dst.GetImage(), src.GetImage())
+	dst.SecurityContext = DeepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
 	dst.Resources = DeepMergeResourceRequirements(dst.GetResources(), src.GetResources())
 	dst.Env = DeepMergeSlices(dst.GetEnv(), src.GetEnv())
 	dst.ExtraVolumeMounts = DeepMergeSlices(dst.ExtraVolumeMounts, src.ExtraVolumeMounts)
@@ -584,7 +584,7 @@ func deepMergeEnvoyContainer(dst, src *v1alpha1.EnvoyContainer) *v1alpha1.EnvoyC
 	return dst
 }
 
-func deepMergeImage(dst, src *v1alpha1.Image) *v1alpha1.Image {
+func DeepMergeImage(dst, src *v1alpha1.Image) *v1alpha1.Image {
 	// nil src override means just use dst
 	if src == nil {
 		return dst
@@ -651,7 +651,7 @@ func DeepMergeResourceRequirements(dst, src *corev1.ResourceRequirements) *corev
 	return dst
 }
 
-func deepMergeSecurityContext(dst, src *corev1.SecurityContext) *corev1.SecurityContext {
+func DeepMergeSecurityContext(dst, src *corev1.SecurityContext) *corev1.SecurityContext {
 	// nil src override means just use dst
 	if src == nil {
 		return dst
@@ -731,8 +731,8 @@ func deepMergeAIExtension(dst, src *v1alpha1.AiExtension) *v1alpha1.AiExtension 
 	}
 
 	dst.Enabled = MergePointers(dst.GetEnabled(), src.GetEnabled())
-	dst.Image = deepMergeImage(dst.GetImage(), src.GetImage())
-	dst.SecurityContext = deepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
+	dst.Image = DeepMergeImage(dst.GetImage(), src.GetImage())
+	dst.SecurityContext = DeepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
 	dst.Resources = DeepMergeResourceRequirements(dst.GetResources(), src.GetResources())
 	dst.Env = DeepMergeSlices(dst.GetEnv(), src.GetEnv())
 	dst.Ports = DeepMergeSlices(dst.GetPorts(), src.GetPorts())
@@ -783,8 +783,8 @@ func deepMergeAgentgateway(dst, src *v1alpha1.Agentgateway) *v1alpha1.Agentgatew
 
 	dst.Enabled = MergePointers(dst.GetEnabled(), src.GetEnabled())
 	dst.LogLevel = MergePointers(dst.GetLogLevel(), src.GetLogLevel())
-	dst.Image = deepMergeImage(dst.GetImage(), src.GetImage())
-	dst.SecurityContext = deepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
+	dst.Image = DeepMergeImage(dst.GetImage(), src.GetImage())
+	dst.SecurityContext = DeepMergeSecurityContext(dst.GetSecurityContext(), src.GetSecurityContext())
 	dst.Resources = DeepMergeResourceRequirements(dst.GetResources(), src.GetResources())
 	dst.Env = DeepMergeSlices(dst.GetEnv(), src.GetEnv())
 	dst.CustomConfigMapName = MergePointers(dst.GetCustomConfigMapName(), src.GetCustomConfigMapName())
