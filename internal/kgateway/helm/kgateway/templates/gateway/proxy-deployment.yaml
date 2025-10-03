@@ -47,15 +47,15 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "kgateway.gateway.fullname" . }}
-      {{- if $gateway.podSecurityContext }}
+      {{- with $gateway.podSecurityContext }}
       securityContext:
-        {{- toYaml $gateway.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}
-        {{- if $gateway.securityContext }}
+        {{- with $gateway.securityContext }}
         securityContext:
-          {{- toYaml $gateway.securityContext | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         args:
         - "--disable-hot-restart"
@@ -70,7 +70,9 @@ spec:
         - "{{ . }}"
         {{- end }}{{/* with $gateway.componentLogLevel */}}
         image: "{{ template "kgateway.gateway.image" $gateway.image }}"
+        {{- if $gateway.image.pullPolicy }}
         imagePullPolicy: {{ $gateway.image.pullPolicy }}
+        {{- end }}
         volumeMounts:
         - mountPath: /etc/envoy
           name: envoy-config
@@ -104,18 +106,18 @@ spec:
         - name: http-monitoring
           containerPort: 9091
         {{- end }}
-{{- if $gateway.startupProbe }}
+{{- with $gateway.startupProbe }}
         startupProbe:
-{{ toYaml $gateway.startupProbe | indent 10}}
-{{- end }}{{/*if $gateway.startupProbe*/}}
-{{- if $gateway.readinessProbe }}
+{{ toYaml . | indent 10}}
+{{- end }}
+{{- with $gateway.readinessProbe }}
         readinessProbe:
-{{ toYaml $gateway.readinessProbe | indent 10}}
-{{- end }}{{/*if $gateway.readinessProbe*/}}
-{{- if $gateway.livenessProbe }}
+{{ toYaml . | indent 10}}
+{{- end }}
+{{- with $gateway.livenessProbe }}
         livenessProbe:
-{{ toYaml $gateway.livenessProbe | indent 10}}
-{{- end }}{{/*if $gateway.livenessProbe*/}}
+{{ toYaml . | indent 10}}
+{{- end }}
 {{- if ($gateway.gracefulShutdown).enabled }}
         lifecycle:
           preStop:
@@ -125,10 +127,10 @@ spec:
               - -c
               - wget --post-data "" -O /dev/null 127.0.0.1:19000/healthcheck/fail; sleep {{ $gateway.gracefulShutdown.sleepTimeSeconds | default "10" }}
 {{- end}}{{/*if ($gateway.gracefulShutdown).enabled */}}
-{{- if $gateway.resources }}
+{{- with $gateway.resources }}
         resources:
-          {{- toYaml $gateway.resources | nindent 10 }}
-{{- end }} {{/* if $gateway.resources */}}
+          {{- toYaml . | nindent 10 }}
+{{- end }}
 {{- if and $gateway.istio.enabled ($gateway.sdsContainer).image }}
       - name: sds
         image: "{{ template "kgateway.gateway.image" $gateway.sdsContainer.image }}"
@@ -162,13 +164,13 @@ spec:
           tcpSocket:
             port: 8234
           timeoutSeconds: 1
-        {{- if $gateway.sdsContainer.resources }}
+        {{- with $gateway.sdsContainer.resources }}
         resources:
-          {{- toYaml $gateway.sdsContainer.resources | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if $gateway.sdsContainer.securityContext }}
+        {{- with $gateway.sdsContainer.securityContext }}
         securityContext:
-          {{- toYaml $gateway.sdsContainer.securityContext | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
@@ -254,13 +256,13 @@ spec:
                 fieldPath: metadata.namespace
           - name: DISABLE_ENVOY
             value: "true"
-        {{- if $gateway.istioContainer.resources }}
+        {{- with $gateway.istioContainer.resources }}
         resources:
-          {{- toYaml $gateway.istioContainer.resources | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if $gateway.istioContainer.securityContext }}
+        {{- with $gateway.istioContainer.securityContext }}
         securityContext:
-          {{- toYaml $gateway.istioContainer.securityContext | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         volumeMounts:
           - mountPath: /var/run/secrets/istio
@@ -297,18 +299,18 @@ spec:
                 fieldPath: metadata.namespace
 {{- if $gateway.aiExtension.env }}
 {{ toYaml $gateway.aiExtension.env | indent 10 }}
-{{- end }} {{/* if $gateway.aiExtension.env */}}
-{{- if $gateway.aiExtension.ports }}
+{{- end }}
+{{- with $gateway.aiExtension.ports }}
         ports:
-{{ toYaml $gateway.aiExtension.ports | indent 10 }}
-{{- end }} {{/* if $gateway.aiExtension.ports */}}
-        {{- if $gateway.aiExtension.resources }}
+{{ toYaml . | indent 10 }}
+{{- end }}
+        {{- with $gateway.aiExtension.resources }}
         resources:
-          {{- toYaml $gateway.aiExtension.resources | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if $gateway.aiExtension.securityContext }}
+        {{- with $gateway.aiExtension.securityContext }}
         securityContext:
-          {{- toYaml $gateway.aiExtension.securityContext | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File

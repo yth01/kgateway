@@ -139,6 +139,20 @@ func defaultAgentgatewayParameters(imageInfo *ImageInfo, omitDefaultSecurityCont
 	gwp.Spec.Kube.PodTemplate.StartupProbe.HTTPGet.Path = "/healthz/ready"
 	gwp.Spec.Kube.PodTemplate.StartupProbe.HTTPGet.Port = intstr.FromInt(15021)
 	gwp.Spec.Kube.PodTemplate.GracefulShutdown.Enabled = ptr.To(true)
+
+	// Add pod security context with sysctls for agentgateway (unless omitting default security context)
+	if !omitDefaultSecurityContext {
+		if gwp.Spec.Kube.PodTemplate.SecurityContext == nil {
+			gwp.Spec.Kube.PodTemplate.SecurityContext = &corev1.PodSecurityContext{}
+		}
+		gwp.Spec.Kube.PodTemplate.SecurityContext.Sysctls = []corev1.Sysctl{
+			{
+				Name:  "net.ipv4.ip_unprivileged_port_start",
+				Value: "0",
+			},
+		}
+	}
+
 	return gwp
 }
 

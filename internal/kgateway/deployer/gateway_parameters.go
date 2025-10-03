@@ -259,6 +259,14 @@ func (k *kGatewayParameters) getGatewayParametersForGateway(ctx context.Context,
 	}
 
 	mergedGwp := defaultGwp
+	if ptr.Deref(gwp.Spec.Kube.GetOmitDefaultSecurityContext(), false) {
+		// Need to regenerate defaults with OmitDefaultSecurityContext=true
+		gwc, err := getGatewayClassFromGateway(ctx, k.cli, gw)
+		if err != nil {
+			return nil, err
+		}
+		mergedGwp = deployer.GetInMemoryGatewayParameters(gwc.GetName(), k.inputs.ImageInfo, k.inputs.GatewayClassName, k.inputs.WaypointGatewayClassName, k.inputs.AgentgatewayClassName, true)
+	}
 	deployer.DeepMergeGatewayParameters(mergedGwp, gwp)
 	return mergedGwp, nil
 }
@@ -402,7 +410,6 @@ func (k *kGatewayParameters) getValues(gw *api.Gateway, gwParam *v1alpha1.Gatewa
 	// serviceaccount values
 	gateway.ServiceAccount = deployer.GetServiceAccountValues(svcAccountConfig)
 	// pod template values
-	gateway.OmitDefaultSecurityContext = gwParam.Spec.Kube.GetOmitDefaultSecurityContext()
 	gateway.ExtraPodAnnotations = podConfig.GetExtraAnnotations()
 	gateway.ExtraPodLabels = podConfig.GetExtraLabels()
 	gateway.ImagePullSecrets = podConfig.GetImagePullSecrets()
