@@ -553,11 +553,9 @@ spec:
                     type: object
                   deployment:
                     properties:
-                      omitReplicas:
-                        type: boolean
                       replicas:
                         format: int32
-                        minimum: 1
+                        minimum: 0
                         type: integer
                       strategy:
                         properties:
@@ -578,11 +576,6 @@ spec:
                             type: string
                         type: object
                     type: object
-                    x-kubernetes-validations:
-                    - message: at most one of the fields in [replicas omitReplicas]
-                        may be set
-                      rule: '[has(self.replicas),has(self.omitReplicas)].filter(x,x==true).size()
-                        <= 1'
                   envoyContainer:
                     properties:
                       bootstrap:
