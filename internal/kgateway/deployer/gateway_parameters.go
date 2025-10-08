@@ -66,7 +66,7 @@ func GatewayGVKsToWatch(ctx context.Context, d *deployer.Deployer) ([]schema.Gro
 			"istio": map[string]any{
 				"enabled": false,
 			},
-			"image": map[string]any{},
+			"image": map[string]any{"repository": "placeholderGatewayGVKsToWatch"},
 		},
 	})
 }
