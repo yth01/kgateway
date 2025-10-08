@@ -70,6 +70,11 @@ spec:
                   - -c
                   - wget --post-data "" -O /dev/null 127.0.0.1:15000/quitquitquit; sleep {{ $gateway.gracefulShutdown.sleepTimeSeconds | default "10" }}
           {{- end}}{{/* if ($gateway.gracefulShutdown).enabled */}}
+          {{- /*  Note: this is not *all* ports, since those will be dynamically set. However, this is the static port which is useful for setting up monitoring */}}
+          ports:
+          - containerPort: 15020
+            name: metrics
+            protocol: TCP
           {{- with $gateway.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

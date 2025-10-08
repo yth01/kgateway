@@ -161,6 +161,10 @@ spec:
                   - /bin/sh
                   - -c
                   - wget --post-data "" -O /dev/null 127.0.0.1:15000/quitquitquit; sleep 10
+          ports:
+          - containerPort: 15020
+            name: metrics
+            protocol: TCP
           args:
             - -f
             - /config/config.yaml
