@@ -491,13 +491,13 @@ kind-create: ## Create a KinD cluster
 	$(KIND) get clusters | grep $(CLUSTER_NAME) || $(KIND) create cluster --name $(CLUSTER_NAME)
 
 CONFORMANCE_CHANNEL ?= experimental
-CONFORMANCE_VERSION ?= v1.3.0
+CONFORMANCE_VERSION ?= v1.4.0
 .PHONY: gw-api-crds
-gw-api-crds: ## Install the Gateway API CRDs
+gw-api-crds: ## Install the Gateway API CRDs. HACK: Use SSA to avoid the issue with the CRD annotations being too long.
 ifeq ($(CONFORMANCE_CHANNEL), standard)
-	kubectl apply --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=$(CONFORMANCE_VERSION)"
+	kubectl apply --server-side --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=$(CONFORMANCE_VERSION)"
 else
-	kubectl apply --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd/$(CONFORMANCE_CHANNEL)?ref=$(CONFORMANCE_VERSION)"
+	kubectl apply --server-side --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd/$(CONFORMANCE_CHANNEL)?ref=$(CONFORMANCE_VERSION)"
 endif
 
 # The version of the k8s gateway api inference extension CRDs to install.
@@ -720,7 +720,7 @@ bump-gtw: ## Bump Gateway API deps to $DEP_REF (or $DEP_VERSION). Example: make 
 	  exit 2; \
 	fi; \
 	echo "Bumping Gateway API to $${DEP_REF}"; \
-	$(SHELL) hack/bump_deps.sh gtw "$$DEP_REF"; \
+	hack/bump_deps.sh gtw "$$DEP_REF"; \
 	echo "Updating licensing..."; \
 	$(MAKE) generate-licenses
 
@@ -732,7 +732,7 @@ bump-gie: ## Bump Gateway API Inference Extension to $DEP_REF (or $DEP_VERSION).
 	  exit 2; \
 	fi; \
 	echo ">>> Bumping Gateway API Inference Extension to $${DEP_REF}"; \
-	$(SHELL) hack/bump_deps.sh gie "$$DEP_REF"; \
+	hack/bump_deps.sh gie "$$DEP_REF"; \
 	echo "Updating licensing..."; \
 	$(MAKE) generate-licenses
 

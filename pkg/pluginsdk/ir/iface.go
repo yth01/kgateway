@@ -105,6 +105,8 @@ type RouteContext struct {
 	In              HttpRouteRuleMatchIR
 	// TypedFilterConfig will be output on the Route level after all plugins have run
 	TypedFilterConfig TypedFilterConfigMap
+	// ListenerPort is the port of the Gateway listener that this route is attached to
+	ListenerPort uint32
 
 	InheritedPolicyPriority apiannotations.InheritedPolicyPriorityValue
 }

@@ -9,10 +9,9 @@ import (
 	"strings"
 
 	"istio.io/istio/pkg/kube/krt"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-
-	corev1 "k8s.io/api/core/v1"
 
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/ir"
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/krtcollections"
@@ -174,10 +173,15 @@ func (ml *MergedListeners) appendHttpsListener(
 	routesWithHosts []*query.RouteInfo,
 	reporter reports.ListenerReporter,
 ) {
+	tls := listener.TLS
+	if tls == nil {
+		tls = &gwv1.ListenerTLSConfig{}
+	}
+
 	mfc := httpsFilterChain{
 		gatewayListenerName: query.GenerateRouteKey(listener.Parent, string(listener.Name)),
 		sniDomain:           listener.Hostname,
-		tls:                 listener.TLS,
+		tls:                 tls,
 		routesWithHosts:     routesWithHosts,
 		attachedPolicies:    listener.AttachedPolicies,
 	}
@@ -248,9 +252,13 @@ func (ml *MergedListeners) AppendTlsListener(
 		gatewayListenerName: query.GenerateRouteKey(listener.Parent, string(listener.Name)),
 		routesWithHosts:     routeInfos,
 	}
+	tls := listener.TLS
+	if tls == nil {
+		tls = &gwv1.ListenerTLSConfig{}
+	}
 	fc := tcpFilterChain{
 		parents:          parent,
-		tls:              listener.TLS,
+		tls:              tls,
 		sniDomain:        listener.Hostname,
 		listenerReporter: reporter,
 	}
@@ -385,7 +393,7 @@ func (ml *MergedListener) TranslateListener(
 // will use a kgateway AggregatedListener with one TCP filter chain.
 type tcpFilterChain struct {
 	parents          tcpFilterChainParent
-	tls              *gwv1.GatewayTLSConfig
+	tls              *gwv1.ListenerTLSConfig
 	sniDomain        *gwv1.Hostname
 	listenerReporter reports.ListenerReporter
 }
@@ -652,7 +660,7 @@ func (httpFilterChain *httpFilterChain) translateHttpFilterChain(
 type httpsFilterChain struct {
 	gatewayListenerName string
 	sniDomain           *gwv1.Hostname
-	tls                 *gwv1.GatewayTLSConfig
+	tls                 *gwv1.ListenerTLSConfig
 	routesWithHosts     []*query.RouteInfo
 	attachedPolicies    ir.AttachedPolicies
 }
@@ -782,7 +790,7 @@ func translateSslConfig(
 	kctx krt.HandlerContext,
 	ctx context.Context,
 	parentNamespace string,
-	tls *gwv1.GatewayTLSConfig,
+	tls *gwv1.ListenerTLSConfig,
 	queries query.GatewayQueries,
 ) (*ir.TlsBundle, error) {
 	if tls == nil {

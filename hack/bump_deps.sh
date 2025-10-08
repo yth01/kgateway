@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
+
+set -o pipefail
+set -o nounset
+set -o errexit
 
 # The GIE EPP used in e2e tests
 EPP_YAML_PATH="test/kubernetes/e2e/features/inferenceextension/testdata/epp.yaml"

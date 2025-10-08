@@ -83,9 +83,9 @@ fi
 # approach is largely necessary since upstream hasn't adopted a helm chart for
 # the CRDs yet, or won't be for the foreseeable future.
 if [[ $CONFORMANCE_CHANNEL == "standard" ]]; then
-  kubectl apply --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=$CONFORMANCE_VERSION"
+  kubectl apply --server-side --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=$CONFORMANCE_VERSION"
 else
-  kubectl apply --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd/$CONFORMANCE_CHANNEL?ref=$CONFORMANCE_VERSION"
+  kubectl apply --server-side --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd/$CONFORMANCE_CHANNEL?ref=$CONFORMANCE_VERSION"
 fi
 
 # 6. Apply the Kubernetes Gateway API Inference Extension CRDs
@@ -94,7 +94,6 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extens
 # 7. Conformance test setup
 if [[ $CONFORMANCE == "true" ]]; then
   echo "Running conformance test setup"
-
   . $SCRIPT_DIR/setup-metalllb-on-kind.sh
 fi
 
