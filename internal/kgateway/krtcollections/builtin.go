@@ -27,11 +27,10 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	v1alpha1 "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
-	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/ir"
-	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/plugins"
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/utils"
 	sdk "github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk"
-	pluginsdkir "github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/ir"
+	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/filters"
+	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/ir"
 	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/policy"
 	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/reporter"
 )
@@ -104,12 +103,12 @@ type builtinPluginGwPass struct {
 	needStatefulSession map[string]bool
 }
 
-func (p *builtinPluginGwPass) ApplyForBackend(pCtx *pluginsdkir.RouteBackendContext, in pluginsdkir.HttpBackend, out *envoyroutev3.Route) error {
+func (p *builtinPluginGwPass) ApplyForBackend(pCtx *ir.RouteBackendContext, in ir.HttpBackend, out *envoyroutev3.Route) error {
 	// no op
 	return nil
 }
 
-func (p *builtinPluginGwPass) ApplyHCM(pCtx *pluginsdkir.HcmContext, out *envoyhttp.HttpConnectionManager) error {
+func (p *builtinPluginGwPass) ApplyHCM(pCtx *ir.HcmContext, out *envoyhttp.HttpConnectionManager) error {
 	// no-op
 	return nil
 }
@@ -139,7 +138,7 @@ func NewBuiltInRuleIr(rule gwv1.HTTPRouteRule) ir.PolicyIR {
 func NewBuiltinPlugin(ctx context.Context) sdk.Plugin {
 	return sdk.Plugin{
 		ContributesPolicies: map[schema.GroupKind]sdk.PolicyPlugin{
-			pluginsdkir.VirtualBuiltInGK: {
+			ir.VirtualBuiltInGK: {
 				NewGatewayTranslationPass: NewGatewayTranslationPass,
 			},
 		},
@@ -563,7 +562,7 @@ func toEnvoyPercentage(percentage float64) *envoytype.FractionalPercent {
 	}
 }
 
-func NewGatewayTranslationPass(tctx pluginsdkir.GwTranslationCtx, reporter reporter.Reporter) pluginsdkir.ProxyTranslationPass {
+func NewGatewayTranslationPass(tctx ir.GwTranslationCtx, reporter reporter.Reporter) ir.ProxyTranslationPass {
 	return &builtinPluginGwPass{
 		reporter:            reporter,
 		hasCorsPolicy:       make(map[string]bool),
@@ -581,7 +580,7 @@ func (p *builtinPlugin) Name() string {
 // and may override the current policy on the output route if pCtx.InheritedPolicyPriority allows it
 // Currently, ApplyForRoute is invoked per policy in order of priority from highest(child route policies)
 // to lowest(parent route policies).
-func (p *builtinPluginGwPass) ApplyForRoute(pCtx *pluginsdkir.RouteContext, outputRoute *envoyroutev3.Route) error {
+func (p *builtinPluginGwPass) ApplyForRoute(pCtx *ir.RouteContext, outputRoute *envoyroutev3.Route) error {
 	pol, ok := pCtx.Policy.(*builtinPlugin)
 	if !ok {
 		return nil
@@ -605,8 +604,8 @@ func (p *builtinPluginGwPass) ApplyForRoute(pCtx *pluginsdkir.RouteContext, outp
 }
 
 func (p *builtinPluginGwPass) ApplyForRouteBackend(
-	policy pluginsdkir.PolicyIR,
-	pCtx *pluginsdkir.RouteBackendContext,
+	policy ir.PolicyIR,
+	pCtx *ir.RouteBackendContext,
 ) error {
 	inPolicy, ok := policy.(*builtinPlugin)
 	if !ok {
@@ -633,12 +632,12 @@ func (p *builtinPluginGwPass) ApplyForRouteBackend(
 	return nil
 }
 
-func (p *builtinPluginGwPass) HttpFilters(fcc pluginsdkir.FilterChainCommon) ([]plugins.StagedHttpFilter, error) {
-	builtinStaged := []plugins.StagedHttpFilter{}
+func (p *builtinPluginGwPass) HttpFilters(fcc ir.FilterChainCommon) ([]filters.StagedHttpFilter, error) {
+	builtinStaged := []filters.StagedHttpFilter{}
 
 	// If there is a cors policy for route rule or backendRef, add the cors http filter to the chain
 	if p.hasCorsPolicy[fcc.FilterChainName] {
-		stagedFilter, err := plugins.NewStagedFilter(envoy_wellknown.CORS, &corsv3.Cors{}, plugins.DuringStage(plugins.CorsStage))
+		stagedFilter, err := filters.NewStagedFilter(envoy_wellknown.CORS, &corsv3.Cors{}, filters.DuringStage(filters.CorsStage))
 		if err != nil {
 			return nil, err
 		}
@@ -647,7 +646,7 @@ func (p *builtinPluginGwPass) HttpFilters(fcc pluginsdkir.FilterChainCommon) ([]
 	}
 
 	if p.needStatefulSession[fcc.FilterChainName] {
-		stagedFilter, err := plugins.NewStagedFilter(statefulSessionFilterName, &stateful_sessionv3.StatefulSession{}, plugins.DuringStage(plugins.AcceptedStage))
+		stagedFilter, err := filters.NewStagedFilter(statefulSessionFilterName, &stateful_sessionv3.StatefulSession{}, filters.DuringStage(filters.AcceptedStage))
 		if err != nil {
 			return nil, err
 		}

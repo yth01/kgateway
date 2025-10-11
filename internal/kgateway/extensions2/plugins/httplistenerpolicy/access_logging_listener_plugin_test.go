@@ -29,10 +29,9 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
-	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/ir"
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/utils"
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/wellknown"
-	pluginsdkir "github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/ir"
+	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/ir"
 )
 
 func TestConvertJsonFormat_EdgeCases(t *testing.T) {
@@ -1241,9 +1240,9 @@ func TestConvertJsonFormat_EdgeCases(t *testing.T) {
 				)
 				require.NoError(t, err, "failed to convert access log config")
 				result, err := generateAccessLogConfig(&ir.HcmContext{
-					Gateway: pluginsdkir.GatewayIR{
-						SourceObject: &pluginsdkir.Gateway{
-							ObjectSource: pluginsdkir.ObjectSource{
+					Gateway: ir.GatewayIR{
+						SourceObject: &ir.Gateway{
+							ObjectSource: ir.ObjectSource{
 								Namespace: "default",
 								Name:      "gw",
 							},
@@ -1444,9 +1443,9 @@ func TestAccessLogFilters(t *testing.T) {
 			require.NoError(t, err)
 
 			hcmCtx := &ir.HcmContext{
-				Gateway: pluginsdkir.GatewayIR{
-					SourceObject: &pluginsdkir.Gateway{
-						ObjectSource: pluginsdkir.ObjectSource{
+				Gateway: ir.GatewayIR{
+					SourceObject: &ir.Gateway{
+						ObjectSource: ir.ObjectSource{
 							Name:      "gw",
 							Namespace: "default",
 						},
