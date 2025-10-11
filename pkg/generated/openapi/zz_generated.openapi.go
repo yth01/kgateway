@@ -705,6 +705,22 @@ func schema_kgateway_v2_api_v1alpha1_AIPolicy(ref common.ReferenceCallback) comm
 							Format:      "",
 						},
 					},
+					"modelAliases": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ModelAliases maps friendly model names to actual provider model names. Example: {\"fast\": \"gpt-3.5-turbo\", \"smart\": \"gpt-4-turbo\"} Note: This field is only applicable when using the agentgateway data plane.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
