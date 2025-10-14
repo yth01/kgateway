@@ -85,13 +85,6 @@ BUG_REPORT_DIR := $(TEST_ASSET_DIR)/bug_report
 $(BUG_REPORT_DIR):
 	mkdir -p $(BUG_REPORT_DIR)
 
-# This is the location where logs are stored for future processing.
-# This is used to generate summaries of test outcomes and may be used in the future to automate
-# processing of data based on test outcomes.
-TEST_LOG_DIR := $(TEST_ASSET_DIR)/test_log
-$(TEST_LOG_DIR):
-	mkdir -p $(TEST_LOG_DIR)
-
 # Base Alpine image used for all containers. Exported for use in goreleaser.yaml.
 export ALPINE_BASE_IMAGE ?= alpine:3.17.6
 
@@ -188,7 +181,7 @@ test: ## Run all tests, or only run the test package at {TEST_PKG} if it is spec
 .PHONY: e2e-test
 e2e-test: TEST_PKG = ./test/kubernetes/e2e/tests
 e2e-test: ## Run only e2e tests, and only run the test package at {TEST_PKG} if it is specified
-	$(MAKE) go-test TEST_TAG=e2e TEST_PKG=$(TEST_PKG)
+	@$(MAKE) --no-print-directory go-test TEST_TAG=e2e TEST_PKG=$(TEST_PKG)
 
 
 # https://go.dev/blog/cover#heat-maps
@@ -236,8 +229,8 @@ GO_TEST_USER_ARGS ?=
 
 .PHONY: go-test
 go-test: ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
-go-test: clean-bug-report $(BUG_REPORT_DIR) # Ensure the bug_report dir is reset before each invocation
-	@$(GO_TEST_ENV) go test -ldflags='$(LDFLAGS)' $(GO_TEST_ARGS) $(GO_TEST_USER_ARGS) -tags=$(TEST_TAG) $(TEST_PKG)
+go-test: reset-bug-report
+	$(GO_TEST_ENV) go test -ldflags='$(LDFLAGS)' $(if $(TEST_TAG),-tags=$(TEST_TAG)) $(GO_TEST_ARGS) $(GO_TEST_USER_ARGS) $(TEST_PKG)
 
 # https://go.dev/blog/cover#heat-maps
 .PHONY: go-test-with-coverage
@@ -247,12 +240,12 @@ go-test-with-coverage: go-test
 # https://go.dev/blog/cover#heat-maps
 .PHONY: unit-with-coverage
 unit-with-coverage:
-	$(MAKE) unit GO_TEST_ARGS="$(GO_TEST_ARGS) $(GO_TEST_COVERAGE_ARGS)"
+	@$(MAKE) --no-print-directory unit GO_TEST_ARGS="$(GO_TEST_ARGS) $(GO_TEST_COVERAGE_ARGS)"
 
 .PHONY: unit
 unit: ## Run all unit tests (excludes e2e tests)
 	@echo "Running unit tests (excluding e2e)..."
-	@$(MAKE) go-test TEST_TAG=""
+	@$(MAKE) --no-print-directory go-test TEST_TAG=""
 
 .PHONY: validate-test-coverage
 validate-test-coverage: ## Validate the test coverage
@@ -289,13 +282,15 @@ clean-tests:
 	find * -type f -name '*.cov' -exec rm {} \;
 	find * -type f -name 'junit*.xml' -exec rm {} \;
 
+# NB: 'reset-bug-report: clean-bug-report $(BUG_REPORT_DIR)' would be a subtle
+# bug since we would never run 'mkdir' if the directory already existed.
+.PHONY: reset-bug-report
+reset-bug-report: clean-bug-report
+	@$(MAKE) --no-print-directory $(BUG_REPORT_DIR)
+
 .PHONY: clean-bug-report
 clean-bug-report:
 	rm -rf $(BUG_REPORT_DIR)
-
-.PHONY: clean-test-logs
-clean-test-logs:
-	rm -rf $(TEST_LOG_DIR)
 
 #----------------------------------------------------------------------------------
 # Generated Code
