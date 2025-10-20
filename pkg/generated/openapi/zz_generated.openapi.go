@@ -2154,26 +2154,26 @@ func schema_kgateway_v2_api_v1alpha1_CSRFPolicy(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "CSRFPolicy can be used to set percent of requests for which the CSRF filter is enabled, enable shadow-only mode where policies will be evaluated and tracked, but not enforced and add additional source origins that will be allowed in addition to the destination origin.",
+				Description: "CSRFPolicy can be used to set percent of requests for which the CSRF filter is enabled, enable shadow-only mode where policies will be evaluated and tracked, but not enforced and add additional source origins that will be allowed in addition to the destination origin.\n\nDataplane Support: - Envoy: Supports PercentageEnabled, PercentageShadowed, and AdditionalOrigins - Agentgateway: Only supports AdditionalOrigins (PercentageEnabled and PercentageShadowed are ignored)",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"percentageEnabled": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specifies the percentage of requests for which the CSRF filter is enabled.",
+							Description: "Specifies the percentage of requests for which the CSRF filter is enabled. Envoy: Supported Agentgateway: Not supported (ignored)",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
 					},
 					"percentageShadowed": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specifies that CSRF policies will be evaluated and tracked, but not enforced.",
+							Description: "Specifies that CSRF policies will be evaluated and tracked, but not enforced. Envoy: Supported Agentgateway: Not supported (ignored)",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
 					},
 					"additionalOrigins": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specifies additional source origins that will be allowed in addition to the destination origin.",
+							Description: "Specifies additional source origins that will be allowed in addition to the destination origin. Envoy: Supported Agentgateway: Supported",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
