@@ -27,6 +27,8 @@ set -eEuo pipefail
 #   --rebuild, -r   Delete the kind cluster, rebuild all docker images, create a
 #                   new kind cluster, load images into kind, and then run tests.
 #                   This ensures a completely fresh environment.
+#   --persist, -p   Skip 'make setup' if kind cluster exists (faster iteration).
+#                   Equivalent to setting PERSIST_INSTALL=true.
 #   --list, -l      List all available test suites and top-level tests
 #   --dry-run, -n   Print the test command that would be run without executing it
 #
@@ -40,7 +42,10 @@ set -eEuo pipefail
 #   # Run a top-level test function
 #   ./hack/run-e2e-test.sh TestKgateway
 #
-#   # Skip setup if cluster exists (faster iteration)
+#   # Skip setup if cluster exists (faster iteration) - using flag
+#   ./hack/run-e2e-test.sh --persist SessionPersistence
+#
+#   # Skip setup if cluster exists (faster iteration) - using env var
 #   PERSIST_INSTALL=true ./hack/run-e2e-test.sh SessionPersistence
 #
 #   # Auto-cleanup conflicting Helm releases
@@ -253,13 +258,39 @@ build_test_pattern() {
             method_file=$(git grep -l "func (.*) ${method_name}\(\)" -- 'test/kubernetes/e2e/features' 2>/dev/null | head -1 || true)
 
             if [[ -n "$method_file" ]]; then
-                # Found a test method, now find which suite it belongs to by looking at the package
-                local suite_pkg
-                suite_pkg=$(dirname "$method_file" | xargs basename)
+                # Found a test method, now find which suite it belongs to
+                # Get the package import path relative to the features directory
+                local rel_path
+                rel_path=$(echo "$method_file" | sed 's|test/kubernetes/e2e/features/||' | xargs dirname)
 
-                # Find the suite registration for this package
+                # Find the suite registration that imports from this path
+                # This handles both simple package names and import aliases
                 local suite_line
-                suite_line=$(git grep "Register(\"[^\"]*\", ${suite_pkg}\\.NewTestingSuite)" -- 'test/kubernetes/e2e/tests/*.go' 2>/dev/null | head -1 || true)
+                suite_line=$(git grep "Register(\"[^\"]*\", .*\\.NewTestingSuite)" -- 'test/kubernetes/e2e/tests/*.go' 2>/dev/null | \
+                    grep -v "^\s*//" | \
+                    while IFS=: read -r file line_content; do
+                        # Extract the package identifier from the Register call
+                        pkg_id=$(echo "$line_content" | sed -E 's/.*Register\("[^"]*", ([^.]*)\..*/\1/')
+                        # Check if this package identifier's import path matches our method's path
+                        # Look for either:
+                        # 1. Aliased import: pkg_id "path/to/rel_path"
+                        # 2. Non-aliased import: "path/to/rel_path" (where pkg_id matches the last component)
+                        if git grep -q "[[:space:]]${pkg_id}[[:space:]]\".*/${rel_path}\"" "$file" 2>/dev/null; then
+                            echo "${file}:${line_content}"
+                            break
+                        elif git grep -q "\".*/${rel_path}\"" "$file" 2>/dev/null; then
+                            # For non-aliased imports, verify pkg_id matches the last path component
+                            local import_line
+                            import_line=$(git grep "\".*/${rel_path}\"" "$file" 2>/dev/null | head -1)
+                            # Extract the last component of the import path
+                            local last_component
+                            last_component=$(echo "$import_line" | sed -E 's|.*/([^/"]+)".*|\1|')
+                            if [[ "$last_component" == "$pkg_id" ]]; then
+                                echo "${file}:${line_content}"
+                                break
+                            fi
+                        fi
+                    done | head -1 || true)
 
                 if [[ -n "$suite_line" ]]; then
                     local suite_name
@@ -374,6 +405,7 @@ list_tests() {
 main() {
     local rebuild_cluster=false
     local dry_run=false
+    local persist_install=false
     local test_pattern=""
 
     # Parse arguments
@@ -391,12 +423,21 @@ main() {
                 dry_run=true
                 shift
                 ;;
+            --persist|-p)
+                persist_install=true
+                shift
+                ;;
             *)
                 test_pattern="$1"
                 shift
                 ;;
         esac
     done
+
+    # Set PERSIST_INSTALL environment variable if --persist flag was used
+    if [[ "$persist_install" == "true" ]]; then
+        export PERSIST_INSTALL=true
+    fi
 
     if [[ -z "$test_pattern" ]]; then
         log_error "Usage: $0 [OPTIONS] TEST_PATTERN"
@@ -405,13 +446,14 @@ main() {
         echo "  $0 SessionPersistence"
         echo "  $0 TestCookieSessionPersistence"
         echo "  $0 TestKgateway"
-        echo "  PERSIST_INSTALL=true $0 SessionPersistence"
+        echo "  $0 --persist SessionPersistence"
         echo "  $0 --rebuild SessionPersistence"
         echo "  $0 -n TestCookieSessionPersistence"
         echo ""
         echo "Options:"
         echo "  --list, -l      List all available test suites and top-level tests"
         echo "  --rebuild, -r   Delete the kind cluster, rebuild images, and create a fresh cluster"
+        echo "  --persist, -p   Skip 'make setup' if kind cluster exists (faster iteration)"
         echo "  --dry-run, -n   Print the test command that would be run without executing it"
         exit 1
     fi
@@ -501,7 +543,7 @@ main() {
         echo "make go-test \\"
         echo "    VERSION=\"${test_version}\" \\"
         echo "    GO_TEST_USER_ARGS=\"-run '$escaped_pattern'\" \\"
-        echo "    TEST_PKG=\"${test_pkg}\""
+        echo "    TEST_PKG=\"${test_pkg}\" TEST_TAG=e2e"
         echo ""
         log_info "Environment variables:"
         if is_truthy PERSIST_INSTALL; then
@@ -523,7 +565,7 @@ main() {
     make go-test \
         VERSION="${test_version}" \
         "GO_TEST_USER_ARGS=-run '$escaped_pattern'" \
-        TEST_PKG="${test_pkg}" 2>&1 | tee "$test_output_file"
+        TEST_PKG="${test_pkg}" TEST_TAG=e2e 2>&1 | tee "$test_output_file"
     test_exit_code=${PIPESTATUS[0]}
     set +x
     set -e
