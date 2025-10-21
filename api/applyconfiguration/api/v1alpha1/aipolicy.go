@@ -2,17 +2,12 @@
 
 package v1alpha1
 
-import (
-	apiv1alpha1 "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
-)
-
 // AIPolicyApplyConfiguration represents a declarative configuration of the AIPolicy type for use
 // with apply.
 type AIPolicyApplyConfiguration struct {
 	PromptEnrichment *AIPromptEnrichmentApplyConfiguration `json:"promptEnrichment,omitempty"`
 	PromptGuard      *AIPromptGuardApplyConfiguration      `json:"promptGuard,omitempty"`
 	Defaults         []FieldDefaultApplyConfiguration      `json:"defaults,omitempty"`
-	RouteType        *apiv1alpha1.RouteType                `json:"routeType,omitempty"`
 	ModelAliases     map[string]string                     `json:"modelAliases,omitempty"`
 }
 
@@ -48,14 +43,6 @@ func (b *AIPolicyApplyConfiguration) WithDefaults(values ...*FieldDefaultApplyCo
 		}
 		b.Defaults = append(b.Defaults, *values[i])
 	}
-	return b
-}
-
-// WithRouteType sets the RouteType field in the declarative configuration to the given value
-// and returns the receiver, so that objects can be built by chaining "With" function invocations.
-// If called multiple times, the RouteType field is set to the value of the last call.
-func (b *AIPolicyApplyConfiguration) WithRouteType(value apiv1alpha1.RouteType) *AIPolicyApplyConfiguration {
-	b.RouteType = &value
 	return b
 }
 

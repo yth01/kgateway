@@ -700,13 +700,6 @@ func schema_kgateway_v2_api_v1alpha1_AIPolicy(ref common.ReferenceCallback) comm
 							},
 						},
 					},
-					"routeType": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The type of route to the LLM provider API. Currently, `CHAT` and `CHAT_STREAMING` are supported. Note: This field is not applicable when using agentgateway",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"modelAliases": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ModelAliases maps friendly model names to actual provider model names. Example: {\"fast\": \"gpt-3.5-turbo\", \"smart\": \"gpt-4-turbo\"} Note: This field is only applicable when using the agentgateway data plane.",
@@ -735,7 +728,7 @@ func schema_kgateway_v2_api_v1alpha1_AIPromptEnrichment(ref common.ReferenceCall
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "AIPromptEnrichment defines the config to enrich requests sent to the LLM provider by appending and prepending system prompts. This can be configured only for LLM providers that use the `CHAT` or `CHAT_STREAMING` API type.\n\nPrompt enrichment allows you to add additional context to the prompt before sending it to the model. Unlike RAG or other dynamic context methods, prompt enrichment is static and is applied to every request.\n\n**Note**: Some providers, including Anthropic, do not support SYSTEM role messages, and instead have a dedicated system field in the input JSON. In this case, use the [`defaults` setting](#fielddefault) to set the system field.\n\nThe following example prepends a system prompt of `Answer all questions in French.` and appends `Describe the painting as if you were a famous art critic from the 17th century.` to each request that is sent to the `openai` HTTPRoute. ```yaml\n\n\tname: openai-opt\n\tnamespace: kgateway-system\n\nspec:\n\n\ttargetRefs:\n\t- group: gateway.networking.k8s.io\n\t  kind: HTTPRoute\n\t  name: openai\n\tai:\n\t    promptEnrichment:\n\t      prepend:\n\t      - role: SYSTEM\n\t        content: \"Answer all questions in French.\"\n\t      append:\n\t      - role: USER\n\t        content: \"Describe the painting as if you were a famous art critic from the 17th century.\"\n\n```",
+				Description: "AIPromptEnrichment defines the config to enrich requests sent to the LLM provider by appending and prepending system prompts.\n\nPrompt enrichment allows you to add additional context to the prompt before sending it to the model. Unlike RAG or other dynamic context methods, prompt enrichment is static and is applied to every request.\n\n**Note**: Some providers, including Anthropic, do not support SYSTEM role messages, and instead have a dedicated system field in the input JSON. In this case, use the [`defaults` setting](#fielddefault) to set the system field.\n\nThe following example prepends a system prompt of `Answer all questions in French.` and appends `Describe the painting as if you were a famous art critic from the 17th century.` to each request that is sent to the `openai` HTTPRoute. ```yaml\n\n\tname: openai-opt\n\tnamespace: kgateway-system\n\nspec:\n\n\ttargetRefs:\n\t- group: gateway.networking.k8s.io\n\t  kind: HTTPRoute\n\t  name: openai\n\tai:\n\t    promptEnrichment:\n\t      prepend:\n\t      - role: SYSTEM\n\t        content: \"Answer all questions in French.\"\n\t      append:\n\t      - role: USER\n\t        content: \"Describe the painting as if you were a famous art critic from the 17th century.\"\n\n```",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"prepend": {
@@ -4978,6 +4971,22 @@ func schema_kgateway_v2_api_v1alpha1_LLMProvider(ref common.ReferenceCallback) c
 							Ref:         ref("github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AuthHeader"),
 						},
 					},
+					"routes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Routes defines how to identify the type of traffic to handle. The keys are URL path suffixes matched using ends-with comparison (e.g., \"/v1/chat/completions\"). The special \"*\" wildcard matches any path. If not specified, all traffic defaults to \"completions\" type.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -5796,6 +5805,22 @@ func schema_kgateway_v2_api_v1alpha1_NamedLLMProvider(ref common.ReferenceCallba
 						SchemaProps: spec.SchemaProps{
 							Description: "AuthHeader specifies how the Authorization header is set in the request sent to the LLM provider. Allows changing the header name and/or the prefix (e.g., \"Bearer\"). Note: Not all LLM providers use the Authorization header and prefix. For example, OpenAI uses header: \"Authorization\" and prefix: \"Bearer\" But Azure OpenAI uses header: \"api-key\" and no Bearer.",
 							Ref:         ref("github.com/kgateway-dev/kgateway/v2/api/v1alpha1.AuthHeader"),
+						},
+					},
+					"routes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Routes defines how to identify the type of traffic to handle. The keys are URL path suffixes matched using ends-with comparison (e.g., \"/v1/chat/completions\"). The special \"*\" wildcard matches any path. If not specified, all traffic defaults to \"completions\" type.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 				},

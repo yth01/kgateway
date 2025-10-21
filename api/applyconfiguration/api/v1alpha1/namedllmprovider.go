@@ -4,6 +4,8 @@ package v1alpha1
 
 import (
 	v1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	apiv1alpha1 "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 )
 
 // NamedLLMProviderApplyConfiguration represents a declarative configuration of the NamedLLMProvider type for use
@@ -104,5 +106,19 @@ func (b *NamedLLMProviderApplyConfiguration) WithPath(value *PathOverrideApplyCo
 // If called multiple times, the AuthHeader field is set to the value of the last call.
 func (b *NamedLLMProviderApplyConfiguration) WithAuthHeader(value *AuthHeaderApplyConfiguration) *NamedLLMProviderApplyConfiguration {
 	b.LLMProviderApplyConfiguration.AuthHeader = value
+	return b
+}
+
+// WithRoutes puts the entries into the Routes field in the declarative configuration
+// and returns the receiver, so that objects can be build by chaining "With" function invocations.
+// If called multiple times, the entries provided by each call will be put on the Routes field,
+// overwriting an existing map entries in Routes field with the same key.
+func (b *NamedLLMProviderApplyConfiguration) WithRoutes(entries map[string]apiv1alpha1.RouteType) *NamedLLMProviderApplyConfiguration {
+	if b.LLMProviderApplyConfiguration.Routes == nil && len(entries) > 0 {
+		b.LLMProviderApplyConfiguration.Routes = make(map[string]apiv1alpha1.RouteType, len(entries))
+	}
+	for k, v := range entries {
+		b.LLMProviderApplyConfiguration.Routes[k] = v
+	}
 	return b
 }

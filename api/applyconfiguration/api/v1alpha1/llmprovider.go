@@ -2,6 +2,10 @@
 
 package v1alpha1
 
+import (
+	apiv1alpha1 "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
+)
+
 // LLMProviderApplyConfiguration represents a declarative configuration of the LLMProvider type for use
 // with apply.
 type LLMProviderApplyConfiguration struct {
@@ -15,6 +19,7 @@ type LLMProviderApplyConfiguration struct {
 	Port        *int32                               `json:"port,omitempty"`
 	Path        *PathOverrideApplyConfiguration      `json:"path,omitempty"`
 	AuthHeader  *AuthHeaderApplyConfiguration        `json:"authHeader,omitempty"`
+	Routes      map[string]apiv1alpha1.RouteType     `json:"routes,omitempty"`
 }
 
 // LLMProviderApplyConfiguration constructs a declarative configuration of the LLMProvider type for use with
@@ -100,5 +105,19 @@ func (b *LLMProviderApplyConfiguration) WithPath(value *PathOverrideApplyConfigu
 // If called multiple times, the AuthHeader field is set to the value of the last call.
 func (b *LLMProviderApplyConfiguration) WithAuthHeader(value *AuthHeaderApplyConfiguration) *LLMProviderApplyConfiguration {
 	b.AuthHeader = value
+	return b
+}
+
+// WithRoutes puts the entries into the Routes field in the declarative configuration
+// and returns the receiver, so that objects can be build by chaining "With" function invocations.
+// If called multiple times, the entries provided by each call will be put on the Routes field,
+// overwriting an existing map entries in Routes field with the same key.
+func (b *LLMProviderApplyConfiguration) WithRoutes(entries map[string]apiv1alpha1.RouteType) *LLMProviderApplyConfiguration {
+	if b.Routes == nil && len(entries) > 0 {
+		b.Routes = make(map[string]apiv1alpha1.RouteType, len(entries))
+	}
+	for k, v := range entries {
+		b.Routes[k] = v
+	}
 	return b
 }
