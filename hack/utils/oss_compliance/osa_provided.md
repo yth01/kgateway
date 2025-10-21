@@ -48,12 +48,10 @@ Name|Version|License
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.34.1|Apache License 2.0
 [k8s.io/client-go](https://k8s.io/client-go)|v0.34.1|Apache License 2.0
 [klog/v2](https://k8s.io/klog/v2)|v2.130.1|Apache License 2.0
-[k8s.io/kube-openapi](https://k8s.io/kube-openapi)|v0.0.0-20250814151709-d7b6acb124c3|Apache License 2.0
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20250820121507-0af2bda4dd1d|Apache License 2.0
 [sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.22.1|Apache License 2.0
 [sigs.k8s.io/gateway-api](https://sigs.k8s.io/gateway-api)|v1.4.0|Apache License 2.0
 [sigs.k8s.io/gateway-api-inference-extension](https://sigs.k8s.io/gateway-api-inference-extension)|v0.0.0-20251010035459-51485db93d63|Apache License 2.0
-[structured-merge-diff/v6](https://sigs.k8s.io/structured-merge-diff/v6)|v6.3.0|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.6.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
 [gogo/protobuf](https://github.com/gogo/protobuf)|latest|MIT License

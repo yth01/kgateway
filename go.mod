@@ -47,7 +47,7 @@ require (
 	k8s.io/apimachinery v0.34.1
 	k8s.io/client-go v0.34.1
 	k8s.io/klog/v2 v2.130.1
-	k8s.io/kube-openapi v0.0.0-20250814151709-d7b6acb124c3
+	k8s.io/kube-openapi v0.0.0-20250814151709-d7b6acb124c3 // indirect
 	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
 	sigs.k8s.io/controller-runtime v0.22.1
 	sigs.k8s.io/gateway-api v1.4.0
@@ -55,7 +55,7 @@ require (
 	sigs.k8s.io/yaml v1.6.0
 )
 
-require sigs.k8s.io/structured-merge-diff/v6 v6.3.0
+require sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
 
 require (
 	github.com/anthropics/anthropic-sdk-go v1.13.0
