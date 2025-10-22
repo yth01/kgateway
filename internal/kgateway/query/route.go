@@ -23,8 +23,6 @@ import (
 	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/ir"
 )
 
-// TODO (danehans): Rename this file to route.go since it supports different route types.
-
 // RouteInfo contains pre-resolved backends (Services, Upstreams and delegated xRoutes)
 // This allows all querying to happen upfront, and detailed logic for delegation to happen
 // as part of translation.
