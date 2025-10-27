@@ -47,7 +47,7 @@ export LDFLAGS := -X 'github.com/kgateway-dev/kgateway/v2/internal/version.Versi
 export GCFLAGS ?=
 
 UNAME_M := $(shell uname -m)
-# if `GO_ARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
+# if `GOARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
 # if the machines architecture is set to arm64 then we want to set the appropriate values, else we only support amd64
 IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
 ifneq ($(IS_ARM_MACHINE), )
@@ -391,6 +391,10 @@ ENVOYINIT_SOURCES=$(call get_sources,$(ENVOYINIT_DIR))
 ENVOYINIT_OUTPUT_DIR=$(OUTPUT_DIR)/$(ENVOYINIT_DIR)
 export ENVOYINIT_IMAGE_REPO ?= envoy-wrapper
 
+RUSTFORMATIONS_DIR := internal/envoyinit/rustformations
+# find all the find under the rustformation directory but exclude the target directory
+RUSTFORMATIONS_SRC_FILES := $(shell find $(RUSTFORMATIONS_DIR) -type d -name target -prune -o -type f)
+
 $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH): $(ENVOYINIT_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags='$(LDFLAGS)' -gcflags='$(GCFLAGS)' -o $@ ./cmd/envoyinit/...
 
@@ -400,7 +404,7 @@ envoyinit: $(ENVOYINIT_OUTPUT_DIR)/envoyinit-linux-$(GOARCH)
 # TODO(nfuden) cheat the process for now with -r but try to find a cleaner method
 # Allow override of Dockerfile for local development
 ENVOYINIT_DOCKERFILE ?= cmd/envoyinit/Dockerfile
-$(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DOCKERFILE)
+$(ENVOYINIT_OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DOCKERFILE) $(RUSTFORMATIONS_SRC_FILES)
 	@if [ "$(ENVOYINIT_DOCKERFILE)" = "cmd/envoyinit/Dockerfile" ]; then \
 		cp -r internal/envoyinit/rustformations $(ENVOYINIT_OUTPUT_DIR); \
 	fi
