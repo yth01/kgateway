@@ -505,7 +505,14 @@ envoy-wrapper-docker: $(ENVOYINIT_OUTPUT_DIR)/.docker-stamp-$(VERSION)-$(GOARCH)
 #----------------------------------------------------------------------------------
 
 HELM ?= go tool helm
-HELM_PACKAGE_ARGS ?= --version $(VERSION)
+# It would be nice to use actual semver '--version', as Helm docs clearly state
+# is intended (and yet is not enforced by 'helm lint'). Here we say '--version
+# v2.0.0', not '--version 2.0.0', e.g. To do it cleanly, you'd probably
+# repackage all published versions' charts and republish as vA.B.C and A.B.C
+# both. Users would be surprised if their installation recipes had to change on
+# some patch or minor version release. ('--app-version v2.0.0' is acceptable
+# and in fact preferred since it matches our git tags and OCI image tags.)
+HELM_PACKAGE_ARGS ?= --version $(VERSION) --app-version $(VERSION)
 HELM_CHART_DIR=install/helm/kgateway
 HELM_CHART_DIR_CRD=install/helm/kgateway-crds
 
