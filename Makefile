@@ -267,15 +267,7 @@ clean:
 	rm -rf _output
 	rm -rf _test
 	git clean -f -X install
-
-# Clean generated code
-# see hack/generate.sh for source of truth of dirs to clean
-.PHONY: clean-gen
-clean-gen:
-	rm -rf api/applyconfiguration
-	rm -rf pkg/generated/openapi
-	rm -rf pkg/client
-	rm -f install/helm/kgateway-crds/templates/gateway.kgateway.dev_*.yaml
+	@# Note: _output removal also cleans stamps since STAMP_DIR is in _output
 
 .PHONY: clean-tests
 clean-tests:
@@ -296,36 +288,119 @@ clean-bug-report:
 #----------------------------------------------------------------------------------
 # Generated Code
 #----------------------------------------------------------------------------------
+# This section uses stamp files to optimize 'make generate-all' by tracking dependencies.
+#
+# For local development:
+#   - 'make generate-all' only regenerates code when source files change (fast!)
+#   - Use 'make clean-stamps' to force full regeneration
+#
+# For CI (always regenerates to catch dependency tracking bugs):
+#   - 'make verify' cleans stamps and always regenerates everything
+#   - This ensures CI catches any mistakes in our dependency tracking
+#
+# How it works:
+#   - Each generation step creates a stamp file in _output/stamps/
+#   - Make compares stamp file timestamps with source file timestamps
+#   - Only re-runs steps when source files are newer than stamps
+#----------------------------------------------------------------------------------
 
-.PHONY: verify
-verify: generate-all  ## Verify that generated code is up to date
-	git diff -U3 --exit-code
+# Stamp directory for tracking generation steps
+STAMP_DIR := $(OUTPUT_DIR)/stamps
+$(STAMP_DIR):
+	mkdir -p $(STAMP_DIR)
 
-.PHONY: generate-all
-generate-all: generated-code
+# Source files that trigger API codegen
+API_SOURCE_FILES := $(shell find api/v1alpha1 -name "*.go" ! -name "zz_generated*")
+API_SOURCE_FILES += hack/generate.sh hack/generate.go
 
-# Generates all required code, cleaning and formatting as well; this target is executed in CI
-.PHONY: generated-code
-generated-code: clean-gen go-generate-all mod-tidy
-generated-code: generate-licenses
-generated-code: fmt
+# Source files that trigger mockgen
+MOCK_SOURCE_FILES := internal/kgateway/query/query_test.go
 
-.PHONY: go-generate-all
-go-generate-all: go-generate-apis go-generate-mocks
+# Files that track dependency changes
+MOD_FILES := go.mod go.sum
 
-.PHONY: go-generate-apis
-go-generate-apis: ## Run all go generate directives in the repo, including codegen for protos, mockgen, and more
+# Clean generated code
+.PHONY: clean-gen
+clean-gen:
+	rm -rf api/applyconfiguration
+	rm -rf pkg/generated/openapi
+	rm -rf pkg/client
+	rm -f install/helm/kgateway-crds/templates/gateway.kgateway.dev_*.yaml
+
+# Clean all stamp files to force regeneration
+.PHONY: clean-stamps
+clean-stamps:
+	rm -rf $(STAMP_DIR)
+
+# API code generation with dependency tracking
+$(STAMP_DIR)/go-generate-apis: $(API_SOURCE_FILES) | $(STAMP_DIR)
+	@echo "Running API code generation..."
 	GO111MODULE=on go generate ./hack/...
+	@touch $@
 
-.PHONY: go-generate-mocks
-go-generate-mocks: ## Runs all generate directives for mockgen in the repo
+# Mock generation with dependency tracking
+$(STAMP_DIR)/go-generate-mocks: $(MOCK_SOURCE_FILES) | $(STAMP_DIR)
+	@echo "Running mock generation..."
 	GO111MODULE=on go generate -run="mockgen" ./...
+	@touch $@
 
-.PHONY: generate-licenses
-generate-licenses: ## Generate the licenses for the project
+# Combine both generation steps
+$(STAMP_DIR)/go-generate-all: $(STAMP_DIR)/go-generate-apis $(STAMP_DIR)/go-generate-mocks
+	@touch $@
+
+# Module tidy with dependency tracking
+$(STAMP_DIR)/mod-tidy: $(MOD_FILES) | $(STAMP_DIR)
+	@echo "Running mod tidy..."
+	@$(MAKE) --no-print-directory mod-download
+	@$(MAKE) --no-print-directory mod-tidy-nested
+	go mod tidy
+	@touch $@
+
+# License generation with dependency tracking
+$(STAMP_DIR)/generate-licenses: $(MOD_FILES) | $(STAMP_DIR)
+	@echo "Generating licenses..."
 	GO111MODULE=on go run hack/utils/oss_compliance/oss_compliance.go osagen -c "GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0"
 	GO111MODULE=on go run hack/utils/oss_compliance/oss_compliance.go osagen -s "Mozilla Public License 2.0,GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0"> hack/utils/oss_compliance/osa_provided.md
 	GO111MODULE=on go run hack/utils/oss_compliance/oss_compliance.go osagen -i "Mozilla Public License 2.0"> hack/utils/oss_compliance/osa_included.md
+	@touch $@
+
+# Formatting - only runs if generation steps changed
+$(STAMP_DIR)/fmt: $(STAMP_DIR)/go-generate-all
+	@echo "Formatting code..."
+	$(GOIMPORTS) -local "github.com/kgateway-dev/kgateway/v2/"  -w $(shell ls -d */ | grep -v vendor)
+	@touch $@
+
+# Fast generation using stamp files (for local development)
+$(STAMP_DIR)/generated-code: $(STAMP_DIR)/go-generate-all $(STAMP_DIR)/mod-tidy $(STAMP_DIR)/generate-licenses $(STAMP_DIR)/fmt
+	@touch $@
+
+.PHONY: verify
+verify: generated-code  ## Verify that generated code is up to date (always regenerates for CI safety)
+	git diff -U3 --exit-code
+
+.PHONY: generate-all
+generate-all: $(STAMP_DIR)/generated-code  ## Generate all code with optimized dependencies (uses stamp files for speed)
+
+.PHONY: generate
+generate: generate-all  ## Alias for generate
+
+# Force full regeneration by cleaning stamps and generated files
+.PHONY: generated-code
+generated-code: clean-gen clean-stamps  ## Force regenerate all code (always runs, ignoring stamps)
+	@$(MAKE) --no-print-directory generate-all
+
+# Convenience PHONY targets that trigger stamp-based generation
+.PHONY: go-generate-all
+go-generate-all: $(STAMP_DIR)/go-generate-all  ## Run all go generate directives (with dependency tracking)
+
+.PHONY: go-generate-apis
+go-generate-apis: $(STAMP_DIR)/go-generate-apis  ## Run all go generate directives in the repo, including codegen for protos, mockgen, and more
+
+.PHONY: go-generate-mocks
+go-generate-mocks: $(STAMP_DIR)/go-generate-mocks  ## Runs all generate directives for mockgen in the repo
+
+.PHONY: generate-licenses
+generate-licenses: $(STAMP_DIR)/generate-licenses  ## Generate the licenses for the project
 
 #----------------------------------------------------------------------------------
 # Controller
