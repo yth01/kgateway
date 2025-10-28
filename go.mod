@@ -80,6 +80,7 @@ require (
 	github.com/alfatraining/structtag v1.0.0 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.1.0 // indirect
 	github.com/ashanbrown/makezero/v2 v2.0.1 // indirect
+	github.com/bitfield/gotestdox v0.2.2 // indirect
 	github.com/bombsimon/wsl/v5 v5.2.0 // indirect
 	github.com/caarlos0/log v0.5.1 // indirect
 	github.com/charmbracelet/fang v0.3.0 // indirect
@@ -89,6 +90,7 @@ require (
 	github.com/digitorus/pkcs7 v0.0.0-20230818184609-3a137a874352 // indirect
 	github.com/digitorus/timestamp v0.0.0-20231217203849-220c5c2851b7 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
+	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/elliotchance/orderedmap v1.8.0 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/godoc-lint/godoc-lint v0.10.0 // indirect
@@ -130,7 +132,7 @@ require (
 	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473 // indirect
-	gotest.tools/v3 v3.4.0 // indirect
+	gotest.tools/gotestsum v1.13.0 // indirect
 	oras.land/oras-go/v2 v2.6.0 // indirect
 )
 
@@ -652,6 +654,7 @@ tool (
 	github.com/mikefarah/yq/v4
 	github.com/onsi/ginkgo/v2/ginkgo
 	golang.org/x/tools/cmd/goimports
+	gotest.tools/gotestsum
 	helm.sh/helm/v3/cmd/helm
 	k8s.io/code-generator/cmd/applyconfiguration-gen
 	k8s.io/code-generator/cmd/client-gen

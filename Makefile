@@ -225,11 +225,13 @@ GO_TEST_COVERAGE ?= go tool github.com/vladopajic/go-test-coverage/v2
 # This is a way for a user executing `make go-test` to be able to provide args which we do not include by default
 # For example, you may want to run tests multiple times, or with various timeouts
 GO_TEST_USER_ARGS ?=
+GO_TEST_RETRIES ?= 0
+GOTESTSUM ?= go tool gotestsum
 
 .PHONY: go-test
 go-test: ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 go-test: reset-bug-report
-	$(GO_TEST_ENV) go test -ldflags='$(LDFLAGS)' $(if $(TEST_TAG),-tags=$(TEST_TAG)) $(GO_TEST_ARGS) $(GO_TEST_USER_ARGS) $(TEST_PKG)
+	$(GO_TEST_ENV) $(GOTESTSUM) --rerun-fails-abort-on-data-race --rerun-fails=$(GO_TEST_RETRIES) --packages="$(TEST_PKG)" -- -ldflags='$(LDFLAGS)' $(if $(TEST_TAG),-tags=$(TEST_TAG)) $(GO_TEST_ARGS) $(GO_TEST_USER_ARGS)
 
 # https://go.dev/blog/cover#heat-maps
 .PHONY: go-test-with-coverage
