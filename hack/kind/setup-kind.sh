@@ -74,16 +74,7 @@ else
 fi
 
 # 5. Apply the Kubernetes Gateway API CRDs
-# Note, we're using kustomize to apply the CRDs from the k8s gateway api repo as
-# kustomize supports remote GH URLs and provides more flexibility compared to
-# alternatives like running a series of `kubectl apply -f <url>` commands. This
-# approach is largely necessary since upstream hasn't adopted a helm chart for
-# the CRDs yet, or won't be for the foreseeable future.
-if [[ $CONFORMANCE_CHANNEL == "standard" ]]; then
-  kubectl apply --server-side --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=$CONFORMANCE_VERSION"
-else
-  kubectl apply --server-side --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd/$CONFORMANCE_CHANNEL?ref=$CONFORMANCE_VERSION"
-fi
+kubectl apply --server-side -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/$CONFORMANCE_VERSION/$CONFORMANCE_CHANNEL-install.yaml"
 
 # 6. Apply the Kubernetes Gateway API Inference Extension CRDs
 kubectl apply --kustomize "https://github.com/kubernetes-sigs/gateway-api-inference-extension/config/crd?ref=$GIE_CRD_VERSION"
