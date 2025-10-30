@@ -34,7 +34,6 @@ func GetSupportedFeaturesForStandardGateway() []apiv1.SupportedFeature {
 	exemptFeatures.Insert(
 		features.GatewayStaticAddressesFeature,
 		features.GatewayHTTPListenerIsolationFeature,
-		features.GatewayPort8080Feature,
 	)
 	return getSupportedFeatures(exemptFeatures)
 }
