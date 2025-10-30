@@ -269,15 +269,16 @@ func GatewayCollection(
 
 			name := utils.InternalGatewayName(obj.Namespace, obj.Name, string(l.Name))
 			pri := ParentInfo{
-				ParentGateway:    config.NamespacedName(obj),
-				InternalName:     utils.InternalGatewayName(obj.Namespace, name, ""),
-				AllowedKinds:     allowed,
-				Hostnames:        server.GetHosts(),
-				OriginalHostname: string(ptr.OrEmpty(l.Hostname)),
-				SectionName:      l.Name,
-				Port:             l.Port,
-				Protocol:         l.Protocol,
-				TLSPassthrough:   l.TLS != nil && l.TLS.Mode != nil && *l.TLS.Mode == gwv1.TLSModePassthrough,
+				ParentGateway:          config.NamespacedName(obj),
+				ParentGatewayClassName: string(obj.Spec.GatewayClassName),
+				InternalName:           utils.InternalGatewayName(obj.Namespace, name, ""),
+				AllowedKinds:           allowed,
+				Hostnames:              server.GetHosts(),
+				OriginalHostname:       string(ptr.OrEmpty(l.Hostname)),
+				SectionName:            l.Name,
+				Port:                   l.Port,
+				Protocol:               l.Protocol,
+				TLSPassthrough:         l.TLS != nil && l.TLS.Mode != nil && *l.TLS.Mode == gwv1.TLSModePassthrough,
 			}
 
 			res := GatewayListener{

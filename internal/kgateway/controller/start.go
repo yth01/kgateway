@@ -210,6 +210,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 			cfg.Client,
 			cfg.AgwCollections,
 			agwMergedPlugins,
+			cfg.AdditionalGatewayClasses,
 		)
 
 		agwSyncer.Init(cfg.KrtOptions.WithPrefix("agentgateway"))
