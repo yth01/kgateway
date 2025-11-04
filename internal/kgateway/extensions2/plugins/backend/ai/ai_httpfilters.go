@@ -26,20 +26,20 @@ const (
 	upstreamCodecFilterName = "envoy.filters.http.upstream_codec"
 )
 
-func AddUpstreamClusterHttpFilters(out *envoyclusterv3.Cluster) error {
+func buildUpstreamClusterHttpFilters() ([]*envoy_hcm.HttpFilter, error) {
 	transformationMsg, err := utils.MessageToAny(&envoytransformation.FilterTransformations{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	upstreamWaitMsg, err := utils.MessageToAny(&upstream_wait.UpstreamWaitFilterConfig{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	codecConfigAny, err := utils.MessageToAny(&envoy_upstream_codec.UpstreamCodec{})
 	if err != nil {
-		return fmt.Errorf("failed to create upstream codec config: %v", err)
+		return nil, fmt.Errorf("failed to create upstream codec config: %v", err)
 	}
 
 	// The order of the filters is important as AIPolicyTransformationFilterName must run before the AIBackendTransformationFilterName
@@ -74,7 +74,11 @@ func AddUpstreamClusterHttpFilters(out *envoyclusterv3.Cluster) error {
 		},
 	}
 
-	if err = translatorutils.MutateHttpOptions(out, func(opts *envoy_upstreams_v3.HttpProtocolOptions) {
+	return orderedFilters, nil
+}
+
+func AddUpstreamClusterHttpFilters(filters []*envoy_hcm.HttpFilter, out *envoyclusterv3.Cluster) error {
+	return translatorutils.MutateHttpOptions(out, func(opts *envoy_upstreams_v3.HttpProtocolOptions) {
 		ts := out.GetTransportSocket()
 		supportsALPN := false
 		if ts != nil {
@@ -101,12 +105,8 @@ func AddUpstreamClusterHttpFilters(out *envoyclusterv3.Cluster) error {
 				Seconds: 30,
 			},
 		}
-		opts.HttpFilters = append(opts.GetHttpFilters(), orderedFilters...)
-	}); err != nil {
-		return err
-	}
-
-	return nil
+		opts.HttpFilters = append(opts.GetHttpFilters(), filters...)
+	})
 }
 
 func AddExtprocHTTPFilter() ([]filters.StagedHttpFilter, error) {
