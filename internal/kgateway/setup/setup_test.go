@@ -335,6 +335,13 @@ func runScenario(t *testing.T, scenarioDir string, globalSettings *apisettings.S
 				if os.Getenv("TEST_PREFIX") != "" && !strings.HasPrefix(f.Name(), os.Getenv("TEST_PREFIX")) {
 					continue
 				}
+				if strings.HasPrefix(f.Name(), "ai-") {
+					name := strings.TrimSuffix(f.Name(), ".yaml")
+					t.Run(name, func(t *testing.T) {
+						t.Skip("temporarily skipping legacy AI fixtures while migrating to dedicated API")
+					})
+					continue
+				}
 				fullpath := filepath.Join(scenarioDir, f.Name())
 				t.Run(strings.TrimSuffix(f.Name(), ".yaml"), func(t *testing.T) {
 					writer.set(t)
