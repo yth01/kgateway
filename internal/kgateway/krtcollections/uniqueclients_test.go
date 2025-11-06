@@ -202,7 +202,7 @@ func TestUniqueClients(t *testing.T) {
 				g.Expect(err).NotTo(HaveOccurred())
 				fetchNames.Insert(fetchDR.GetNode().GetMetadata().GetFields()[xds.RoleKey].GetStringValue())
 
-				for j := 0; j < 10; j++ { // simulate 10 requests that are the same client
+				for j := range 10 { // simulate 10 requests that are the same client
 					cb.OnStreamRequest(int64(i*10+j), proto.Clone(r).(*envoy_service_discovery_v3.DiscoveryRequest))
 				}
 			}
@@ -222,7 +222,7 @@ func TestUniqueClients(t *testing.T) {
 			g.Expect(names).To(Equal(tc.result))
 
 			for i := range tc.requests {
-				for j := 0; j < 9; j++ {
+				for j := range 9 {
 					cb.OnStreamClosed(int64(i*10+j), nil)
 				}
 			}
