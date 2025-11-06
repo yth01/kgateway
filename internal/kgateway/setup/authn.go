@@ -7,10 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"k8s.io/client-go/kubernetes"
-
 	"istio.io/istio/pkg/security"
 	"istio.io/istio/security/pkg/k8s/tokenreview"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (

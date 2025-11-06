@@ -3,9 +3,10 @@ package assertions
 import (
 	"time"
 
-	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gleak"
 	"github.com/onsi/gomega/types"
+
+	. "github.com/onsi/gomega"
 
 	"github.com/kgateway-dev/kgateway/v2/test/helpers"
 )

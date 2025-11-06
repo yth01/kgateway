@@ -172,7 +172,18 @@ issues:
   uniq-by-line: true
 formatters:
   enable:
-    - goimports
+    - gofmt
+    - gci
+  settings:
+    gci:
+      sections:
+      - standard
+      - default
+      - prefix(github.com/kgateway-dev)
+      - blank
+      - dot
+      - localmodule
+      custom-order: true
   exclusions:
     generated: lax
     paths:

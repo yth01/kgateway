@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/onsi/gomega/types"
-
 	"github.com/onsi/gomega/matchers"
+	"github.com/onsi/gomega/types"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 

@@ -26,7 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
 
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/agentgatewaysyncer/krtxds"
-
 	"github.com/kgateway-dev/kgateway/v2/internal/kgateway/xds"
 	"github.com/kgateway-dev/kgateway/v2/pkg/metrics"
 )

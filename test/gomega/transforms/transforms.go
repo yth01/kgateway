@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
-	. "github.com/onsi/gomega"
 	"golang.org/x/exp/maps"
+
+	. "github.com/onsi/gomega"
 )
 
 const (
