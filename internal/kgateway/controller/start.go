@@ -325,16 +325,6 @@ func (c *ControllerBuilder) Build(ctx context.Context) (*agentgatewaysyncer.Sync
 		CertWatcher:              c.cfg.SetupOpts.CertWatcher,
 	}
 
-	setupLog.Info("creating gateway class provisioner")
-	if err := NewGatewayClassProvisioner(
-		c.mgr,
-		c.cfg.ControllerName,
-		c.cfg.GatewayClassInfos,
-	); err != nil {
-		setupLog.Error(err, "unable to create gateway class provisioner")
-		return nil, err
-	}
-
 	setupLog.Info("creating base gateway controller")
 	if err := NewBaseGatewayController(
 		ctx,
