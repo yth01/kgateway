@@ -88,7 +88,7 @@ type TrafficPolicySpec struct {
 	HeaderModifiers *HeaderModifiers `json:"headerModifiers,omitempty"`
 
 	// AutoHostRewrite rewrites the Host header to the DNS name of the selected upstream.
-	// NOTE: This field is only honoured for HTTPRoute targets.
+	// NOTE: This field is only honored for HTTPRoute targets.
 	// NOTE: If `autoHostRewrite` is set on a route that also has a [URLRewrite filter](https://gateway-api.sigs.k8s.io/reference/spec/#httpurlrewritefilter)
 	// configured to override the `hostname`, the `hostname` value will be used and `autoHostRewrite` will be ignored.
 	// +optional
@@ -122,15 +122,50 @@ type TrafficPolicySpec struct {
 	// +optional
 	JWT *JWTAuthentication `json:"jwt,omitempty"`
 
+	// UrlRewrite specifies URL rewrite rules for matching requests.
+	// NOTE: This field is only honored for HTTPRoute targets.
+	// +optional
+	UrlRewrite *URLRewrite `json:"urlRewrite,omitempty"`
+
 	// Compression configures response compression (per-route) and request/response
 	// decompression (listener-level insertion triggered by route enable).
 	// The response compression configuration is only honored for HTTPRoute targets.
 	// +optional
 	Compression *Compression `json:"compression,omitempty"`
+
 	// BasicAuth specifies the HTTP basic authentication configuration for the policy.
 	// This controls authentication using username/password credentials in the Authorization header.
 	// +optional
 	BasicAuth *BasicAuthPolicy `json:"basicAuth,omitempty"`
+}
+
+// URLRewrite specifies URL rewrite rules using regular expressions.
+// This allows more flexible and advanced path rewriting based on regex patterns.
+// +kubebuilder:validation:AtLeastOneOf=pathRegex
+type URLRewrite struct {
+	// Path specifies the path rewrite configuration.
+	// +optional
+	PathRegex *PathRegexRewrite `json:"pathRegex,omitempty"`
+}
+
+// PathRegexRewrite specifies how to rewrite the URL path.
+type PathRegexRewrite struct {
+	// Pattern is the regex pattern that matches the URL path.
+	// The pattern must be a valid RE2 regular expression.
+	// If the HTTPRoute uses a RegularExpression path match, this field can use capture groups
+	// from that match.
+	// +required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=1024
+	Pattern string `json:"pattern"`
+
+	// Substitution is the replacement string for the matched pattern.
+	// It can include backreferences to captured groups from the pattern (e.g., \1, \2)
+	// or named groups (e.g., \g<name>).
+	// +required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=1024
+	Substitution string `json:"substitution"`
 }
 
 // TransformationPolicy config is used to modify envoy behavior at a route level.
