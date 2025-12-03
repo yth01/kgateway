@@ -552,7 +552,7 @@ func TestBuildStaticIr(t *testing.T) {
 			},
 			validate: func(backend *api.Backend) bool {
 				return backend != nil &&
-					backend.Name == "test-ns/test-backend" &&
+					backend.Key == "test-ns/test-backend" &&
 					backend.GetStatic().Host == "api.example.com" &&
 					backend.GetStatic().Port == 443
 			},
