@@ -57,19 +57,20 @@ spec:
       name: example-gateway
   jwt:
     extensionRef:
-      name: jwt-ext-3
+      name: jwt-ext-allow-missing
 ---
 apiVersion: gateway.kgateway.dev/v1alpha1
 kind: GatewayExtension
 metadata:
-  name: jwt-ext-3
+  name: jwt-ext-allow-missing
 spec:
   jwt:
+    validationMode: AllowMissing
     providers:
     - name: gateway-example
       claimsToHeaders:
-      - name: gateway
-        header: x-gateway
+        - name: gateway
+          header: x-gateway
       issuer: https://gateway.example.com
       jwks:
         local:
@@ -83,3 +84,4 @@ spec:
             YGATajDpzrHf+WXgOgvwyxaHJSN/fE+eFuRT3ooDaAuytsfYotsn4z/ajdEPSwXY
             CwIDAQAB
             -----END PUBLIC KEY-----
+
