@@ -1193,9 +1193,8 @@ spec:
                           MatchExpressions defines a set of conditions that must be satisfied for the rule to match.
                           These expression should be in the form of a Common Expression Language (CEL) expression.
                         items:
-                          description: A Common Expression Language (CEL) expression.
-                            See https://agentgateway.dev/docs/reference/cel/ for more
-                            info.
+                          description: CELExpression represents a Common Expression
+                            Language (CEL) expression.
                           maxLength: 16384
                           minLength: 1
                           type: string

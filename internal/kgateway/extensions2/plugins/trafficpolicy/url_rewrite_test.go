@@ -7,7 +7,7 @@ import (
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
+	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/kgateway"
 )
 
 func TestURLRewriteIREquals(t *testing.T) {
@@ -186,21 +186,21 @@ func TestURLRewriteIRValidate(t *testing.T) {
 func TestConstructURLRewrite(t *testing.T) {
 	tests := []struct {
 		name            string
-		spec            v1alpha1.TrafficPolicySpec
+		spec            kgateway.TrafficPolicySpec
 		expectedPattern string
 		expectedSubst   string
 		expectNil       bool
 	}{
 		{
 			name:      "nil urlRewrite produces nil output",
-			spec:      v1alpha1.TrafficPolicySpec{},
+			spec:      kgateway.TrafficPolicySpec{},
 			expectNil: true,
 		},
 		{
 			name: "path only",
-			spec: v1alpha1.TrafficPolicySpec{
-				UrlRewrite: &v1alpha1.URLRewrite{
-					PathRegex: &v1alpha1.PathRegexRewrite{
+			spec: kgateway.TrafficPolicySpec{
+				UrlRewrite: &kgateway.URLRewrite{
+					PathRegex: &kgateway.PathRegexRewrite{
 						Pattern:      "^/foo/(.*)",
 						Substitution: "/bar/\\1",
 					},

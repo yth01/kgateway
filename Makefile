@@ -110,8 +110,8 @@ fmt:  ## Format the code with golangci-lint
 	$(CUSTOM_GOLANGCI_LINT_FMT) ./...
 
 .PHONY: fmt-changed
-fmt-changed: ## Format only the changed code with golangci-lint
-	git status -s -uno | awk '{print $$2}' | grep '.*.go$$' | xargs -r $(CUSTOM_GOLANGCI_LINT_FMT)
+fmt-changed: ## Format only the changed code with golangci-lint (skip deleted files)
+	git status -s -uno | awk '{print $$2}' | grep '.*.go$$' | xargs -r -I{} bash -lc '[ -f "{}" ] && $(CUSTOM_GOLANGCI_LINT_FMT) "{}" || true'
 
 # must be a separate target so that make waits for it to complete before moving on
 .PHONY: mod-download
@@ -332,6 +332,7 @@ clean-gen:
 	rm -rf pkg/generated/openapi
 	rm -rf pkg/client
 	rm -f install/helm/kgateway-crds/templates/gateway.kgateway.dev_*.yaml
+	rm -f install/helm/kgateway-crds/templates/agentgateway.dev_*.yaml
 
 # Clean all stamp files to force regeneration
 .PHONY: clean-stamps

@@ -7,7 +7,7 @@ import (
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
+	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/kgateway"
 	"github.com/kgateway-dev/kgateway/v2/pkg/utils/regexutils"
 )
 
@@ -47,7 +47,7 @@ func (u *urlRewriteIR) Validate() error {
 }
 
 // constructURLRewrite constructs the URL rewrite policy IR from the policy specification.
-func constructURLRewrite(spec v1alpha1.TrafficPolicySpec, out *trafficPolicySpecIr) {
+func constructURLRewrite(spec kgateway.TrafficPolicySpec, out *trafficPolicySpecIr) {
 	if spec.UrlRewrite == nil {
 		return
 	}
