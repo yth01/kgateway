@@ -7,13 +7,11 @@ import (
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
 	"k8s.io/client-go/tools/cache"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/agentgateway"
+	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/jwks"
 	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/plugins"
 	"github.com/kgateway-dev/kgateway/v2/pkg/apiclient"
-	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/jwks"
-	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/utils"
 	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/wellknown"
 	"github.com/kgateway-dev/kgateway/v2/pkg/logging"
 )
@@ -21,22 +19,20 @@ import (
 const JwksStoreConfigMapName = "jwks-store"
 
 type JwksStoreController struct {
-	mgr         manager.Manager
 	agw         *plugins.AgwCollections
 	apiClient   apiclient.Client
 	jwks        krt.Singleton[jwks.JwksSources]
-	jwksQueue   utils.AsyncQueue[jwks.JwksSources]
+	jwksQueue   chan jwks.JwksSources
 	waitForSync []cache.InformerSynced
 }
 
 var logger = logging.New("jwks_store")
 
-func NewJWKSStoreController(mgr manager.Manager, apiClient apiclient.Client, agw *plugins.AgwCollections) *JwksStoreController {
+func NewJWKSStoreController(apiClient apiclient.Client, agw *plugins.AgwCollections) *JwksStoreController {
 	return &JwksStoreController{
-		mgr:       mgr,
 		agw:       agw,
 		apiClient: apiClient,
-		jwksQueue: utils.NewAsyncQueue[jwks.JwksSources](),
+		jwksQueue: make(chan jwks.JwksSources),
 	}
 }
 
@@ -121,7 +117,7 @@ func (j *JwksStoreController) Start(ctx context.Context) error {
 	)
 
 	j.jwks.Register(func(o krt.Event[jwks.JwksSources]) {
-		j.jwksQueue.Enqueue(o.Latest())
+		j.jwksQueue <- o.Latest()
 	})
 
 	<-ctx.Done()
@@ -133,6 +129,6 @@ func (j *JwksStoreController) NeedLeaderElection() bool {
 	return true
 }
 
-func (j *JwksStoreController) JwksQueue() utils.AsyncQueue[jwks.JwksSources] {
+func (j *JwksStoreController) JwksQueue() <-chan jwks.JwksSources {
 	return j.jwksQueue
 }

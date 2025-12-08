@@ -7,9 +7,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/kgateway-dev/kgateway/v2/pkg/apiclient"
-	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/utils"
+	"github.com/kgateway-dev/kgateway/v2/pkg/common"
 	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/collections"
 )
+
+const DefaultJwksStorePrefix = "jwks-store"
+const RunnableName = "jwks-store"
 
 var JwksConfigMapNamespacedName = func(jwksUri string) *types.NamespacedName {
 	return nil
@@ -23,28 +26,28 @@ type JwksStore struct {
 	jwksFetcher     *JwksFetcher
 	configMapSyncer *configMapSyncer
 	updates         <-chan map[string]string
-	latestJwksQueue utils.AsyncQueue[JwksSources]
+	latestJwks      <-chan JwksSources
 }
 
-func BuildJwksStore(ctx context.Context, cli apiclient.Client, commonCols *collections.CommonCollections, jwksQueue utils.AsyncQueue[JwksSources], deploymentNamespace string) *JwksStore {
+func BuildJwksStore(ctx context.Context, cli apiclient.Client, commonCols *collections.CommonCollections, jwksQueue <-chan JwksSources, storePrefix, deploymentNamespace string) *JwksStore {
 	log := log.Log.WithName("jwks store setup")
-	log.Info("creating jwks store")
+	log.Info("creating jwks store", "prefix", storePrefix)
 
 	jwksCache := NewJwksCache()
 	jwksStore := &JwksStore{
 		jwksCache:       jwksCache,
-		latestJwksQueue: jwksQueue,
+		latestJwks:      jwksQueue,
 		jwksFetcher:     NewJwksFetcher(jwksCache),
-		configMapSyncer: NewConfigMapSyncer(cli, deploymentNamespace, commonCols.KrtOpts),
+		configMapSyncer: NewConfigMapSyncer(cli, storePrefix, deploymentNamespace, commonCols.KrtOpts),
 	}
 	jwksStore.updates = jwksStore.jwksFetcher.SubscribeToUpdates()
-	BuildJwksConfigMapNamespacedNameFunc(deploymentNamespace)
+	BuildJwksConfigMapNamespacedNameFunc(storePrefix, deploymentNamespace)
 	return jwksStore
 }
 
-func BuildJwksConfigMapNamespacedNameFunc(deploymentNamespace string) {
+func BuildJwksConfigMapNamespacedNameFunc(storePrefix, deploymentNamespace string) {
 	JwksConfigMapNamespacedName = func(jwksUri string) *types.NamespacedName {
-		return &types.NamespacedName{Namespace: deploymentNamespace, Name: JwksConfigMapName(jwksUri)}
+		return &types.NamespacedName{Namespace: deploymentNamespace, Name: JwksConfigMapName(storePrefix, jwksUri)}
 	}
 }
 
@@ -71,15 +74,13 @@ func (s *JwksStore) Start(ctx context.Context) error {
 }
 
 func (s *JwksStore) updateJwksSources(ctx context.Context) {
-	log := log.FromContext(ctx)
 	for {
-		log.Info("dequeuing jwks update")
-		latestJwks, err := s.latestJwksQueue.Dequeue(ctx)
-		if err != nil {
-			log.Error(err, "error dequeuing jwks update")
+		select {
+		case jwks := <-s.latestJwks:
+			s.jwksFetcher.UpdateJwksSources(ctx, jwks)
+		case <-ctx.Done():
 			return
 		}
-		s.jwksFetcher.UpdateJwksSources(ctx, latestJwks)
 	}
 }
 
@@ -103,4 +104,10 @@ func (s *JwksStore) syncToConfigMaps(ctx context.Context) {
 // JwksStore runs on the leader only
 func (r *JwksStore) NeedLeaderElection() bool {
 	return true
+}
+
+var _ common.NamedRunnable = &JwksStore{}
+
+func (r *JwksStore) RunnableName() string {
+	return RunnableName
 }
