@@ -340,6 +340,7 @@ func (c *ControllerBuilder) Build(ctx context.Context) (*agentgatewaysyncer.Sync
 		WaypointGatewayClassName: c.cfg.WaypointGatewayClassName,
 		AgentgatewayClassName:    c.cfg.AgentgatewayClassName,
 		CertWatcher:              c.cfg.SetupOpts.CertWatcher,
+		GwpAgwpCompatibility:     globalSettings.GwpAgwpCompatibility,
 	}
 
 	setupLog.Info("creating base gateway controller")
@@ -392,7 +393,7 @@ func GetDefaultClassInfo(
 			ControllerName:    controllerName,
 			SupportedFeatures: deployer.GetSupportedFeaturesForStandardGateway(),
 		}
-		applyGatewayClassParametersRef(classInfos[gatewayClassName], gatewayClassName, refOverrides)
+		applyGatewayClassParametersRef(classInfos[gatewayClassName], gatewayClassName, refOverrides, false)
 	}
 	// Only enable waypoint gateway class if it's enabled in the settings
 	if globalSettings.EnableWaypoint {
@@ -405,7 +406,7 @@ func GetDefaultClassInfo(
 			ControllerName:    controllerName,
 			SupportedFeatures: deployer.GetSupportedFeaturesForWaypointGateway(),
 		}
-		applyGatewayClassParametersRef(classInfos[waypointGatewayClassName], waypointGatewayClassName, refOverrides)
+		applyGatewayClassParametersRef(classInfos[waypointGatewayClassName], waypointGatewayClassName, refOverrides, false)
 	}
 	// Only enable agentgateway gateway class if it's enabled in the settings
 	if globalSettings.EnableAgentgateway {
@@ -416,13 +417,13 @@ func GetDefaultClassInfo(
 			ControllerName:    agwControllerName,
 			SupportedFeatures: deployer.GetSupportedFeaturesForAgentGateway(),
 		}
-		applyGatewayClassParametersRef(classInfos[agwClassName], agwClassName, refOverrides)
+		applyGatewayClassParametersRef(classInfos[agwClassName], agwClassName, refOverrides, true)
 	}
 	maps.Copy(classInfos, additionalClassInfos)
 	return classInfos
 }
 
-func applyGatewayClassParametersRef(info *deployer.GatewayClassInfo, className string, refs apisettings.GatewayClassParametersRefs) {
+func applyGatewayClassParametersRef(info *deployer.GatewayClassInfo, className string, refs apisettings.GatewayClassParametersRefs, isAgentgateway bool) {
 	if info == nil || len(refs) == 0 {
 		return
 	}
@@ -432,12 +433,19 @@ func applyGatewayClassParametersRef(info *deployer.GatewayClassInfo, className s
 	}
 
 	// Set default Group and Kind if not provided
+	// Use AgentgatewayParametersGVK for agentgateway class, GatewayParametersGVK for others
 	paramsRef := *ref
-	if paramsRef.Group == "" {
-		paramsRef.Group = gwv1.Group(wellknown.GatewayParametersGVK.Group)
-	}
-	if paramsRef.Kind == "" {
-		paramsRef.Kind = gwv1.Kind(wellknown.GatewayParametersGVK.Kind)
+	if paramsRef.Group == "" || paramsRef.Kind == "" {
+		defaultGVK := wellknown.GatewayParametersGVK
+		if isAgentgateway {
+			defaultGVK = wellknown.AgentgatewayParametersGVK
+		}
+		if paramsRef.Group == "" {
+			paramsRef.Group = gwv1.Group(defaultGVK.Group)
+		}
+		if paramsRef.Kind == "" {
+			paramsRef.Kind = gwv1.Kind(defaultGVK.Kind)
+		}
 	}
 
 	info.ParametersRef = &paramsRef
