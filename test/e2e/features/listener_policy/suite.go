@@ -1,6 +1,6 @@
 //go:build e2e
 
-package http_listener_policy
+package listener_policy
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
 
-// testingSuite is the entire Suite of tests for the "HttpListenerPolicy" feature
+// testingSuite is the entire Suite of tests for the "ListenerPolicy" feature
 type testingSuite struct {
 	suite.Suite
 	ctx              context.Context
@@ -66,6 +66,7 @@ func (s *testingSuite) SetupSuite() {
 		"TestAccessLogEmittedToStdout":           {gatewayManifest, httpRouteManifest, accessLogManifest},
 		"TestHttpListenerPolicyClearStaleStatus": {gatewayManifest, httpRouteManifest, serverHeaderManifest},
 		"TestEarlyRequestHeaderModifier":         {gatewayManifest, earlyHeaderMutationManifest},
+		"TestProxyProtocol":                      {gatewayManifest, httpRouteManifest, proxyProtocolManifest},
 	}
 }
 
@@ -273,7 +274,7 @@ func (s *testingSuite) TestHttpListenerPolicyClearStaleStatus() {
 func (s *testingSuite) addAncestorStatus(policyName, policyNamespace, gwName, controllerName string) {
 	currentTimeout, pollingInterval := helpers.GetTimeouts()
 	s.testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
-		policy := &kgateway.HTTPListenerPolicy{}
+		policy := &kgateway.ListenerPolicy{}
 		err := s.testInstallation.ClusterContext.Client.Get(
 			s.ctx,
 			types.NamespacedName{Name: policyName, Namespace: policyNamespace},
@@ -305,7 +306,7 @@ func (s *testingSuite) addAncestorStatus(policyName, policyNamespace, gwName, co
 func (s *testingSuite) assertAncestorStatuses(ancestorName string, expectedControllers map[string]bool) {
 	currentTimeout, pollingInterval := helpers.GetTimeouts()
 	s.testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
-		policy := &kgateway.HTTPListenerPolicy{}
+		policy := &kgateway.ListenerPolicy{}
 		err := s.testInstallation.ClusterContext.Client.Get(
 			s.ctx,
 			types.NamespacedName{Name: "http-listener-policy-server-header", Namespace: "default"},
@@ -346,4 +347,31 @@ func (s *testingSuite) TestEarlyRequestHeaderModifier() {
 			Body:       gomega.ContainSubstring("Welcome to nginx!"),
 		},
 	)
+}
+
+// Test that enabling PROXY protocol causes plain HTTP (no PROXY header) to be rejected.
+func (s *testingSuite) TestProxyProtocol() {
+	// Attempt a normal HTTP request; expect curl to error (connection closed/empty reply).
+	s.testInstallation.Assertions.AssertEventualCurlError(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(8080),
+		},
+		56, // connection reset by peer
+	)
+
+	// test with PROXY protocol header; expect 200 OK
+	s.testInstallation.Assertions.AssertEventualCurlResponse(
+		s.ctx,
+		testdefaults.CurlPodExecOpt,
+		[]curl.Option{
+			curl.WithHost(kubeutils.ServiceFQDN(proxyService.ObjectMeta)),
+			curl.WithHostHeader("example.com"),
+			curl.WithPort(8080),
+			curl.WithProxyProto(),
+		},
+		&matchers.HttpResponse{StatusCode: http.StatusOK})
 }
