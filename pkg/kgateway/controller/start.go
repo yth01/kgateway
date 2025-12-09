@@ -345,7 +345,6 @@ func (c *ControllerBuilder) Build(ctx context.Context) (*agentgatewaysyncer.Sync
 		WaypointGatewayClassName: c.cfg.WaypointGatewayClassName,
 		AgentgatewayClassName:    c.cfg.AgentgatewayClassName,
 		CertWatcher:              c.cfg.SetupOpts.CertWatcher,
-		GwpAgwpCompatibility:     globalSettings.GwpAgwpCompatibility,
 	}
 
 	setupLog.Info("creating base gateway controller")

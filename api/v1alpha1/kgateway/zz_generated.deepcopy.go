@@ -215,11 +215,6 @@ func (in *Agentgateway) DeepCopyInto(out *Agentgateway) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.CustomConfigMapName != nil {
-		in, out := &in.CustomConfigMapName, &out.CustomConfigMapName
-		*out = new(string)
-		**out = **in
-	}
 	if in.ExtraVolumeMounts != nil {
 		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
 		*out = make([]corev1.VolumeMount, len(*in))
