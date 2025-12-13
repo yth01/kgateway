@@ -581,13 +581,20 @@ func SetupLogging(levelStr string) {
 }
 
 func buildJwksStore(ctx context.Context, mgr manager.Manager, apiClient apiclient.Client, commonCollections *collections.CommonCollections, agwCollections *agwplugins.AgwCollections) error {
-	jwksStoreCtrl := agentjwksstore.NewJWKSStoreController(apiClient, agwCollections)
-	if err := mgr.Add(jwksStoreCtrl); err != nil {
+	jwksStorePolicyCtrl := agentjwksstore.NewJWKSStorePolicyController(apiClient, agwCollections)
+	if err := mgr.Add(jwksStorePolicyCtrl); err != nil {
 		return err
 	}
-	jwksStoreCtrl.Init(ctx)
-	jwksStore := jwks.BuildJwksStore(ctx, apiClient, commonCollections, jwksStoreCtrl.JwksQueue(), jwks.DefaultJwksStorePrefix, namespaces.GetPodNamespace())
+	jwksStorePolicyCtrl.Init(ctx)
+
+	jwksStore := jwks.BuildJwksStore(ctx, apiClient, commonCollections, jwksStorePolicyCtrl.JwksChanges(), jwks.DefaultJwksStorePrefix, namespaces.GetPodNamespace())
 	if err := mgr.Add(jwksStore); err != nil {
+		return err
+	}
+
+	jwksStoreCMCtrl := agentjwksstore.NewJWKSStoreConfigMapsController(apiClient, jwks.DefaultJwksStorePrefix, namespaces.GetPodNamespace(), jwksStore)
+	jwksStoreCMCtrl.Init(ctx)
+	if err := mgr.Add(jwksStoreCMCtrl); err != nil {
 		return err
 	}
 
