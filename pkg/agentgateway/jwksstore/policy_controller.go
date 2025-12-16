@@ -2,7 +2,6 @@ package agentjwksstore
 
 import (
 	"context"
-	"time"
 
 	"istio.io/istio/pkg/kube/controllers"
 	"istio.io/istio/pkg/kube/kclient"
@@ -11,28 +10,33 @@ import (
 
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/agentgateway"
 	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/jwks"
+	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/jwks_url"
 	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/plugins"
 	"github.com/kgateway-dev/kgateway/v2/pkg/apiclient"
 	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/wellknown"
 	"github.com/kgateway-dev/kgateway/v2/pkg/logging"
 )
 
+// JwksStorePolicyController watches AgentgatewayPolicies and Backends. When a resource containing
+// new or updated remote jwks source is detected, an jwks store is notifed of an update.
 type JwksStorePolicyController struct {
-	agw         *plugins.AgwCollections
-	apiClient   apiclient.Client
-	jwks        krt.Collection[jwks.JwksSource]
-	jwksChanges chan jwks.JwksSource
-	waitForSync []cache.InformerSynced
+	agw            *plugins.AgwCollections
+	apiClient      apiclient.Client
+	jwks           krt.Collection[jwks.JwksSource]
+	jwksChanges    chan jwks.JwksSource
+	jwksUrlFactory func() jwks_url.JwksUrlBuilder
+	waitForSync    []cache.InformerSynced
 }
 
 var polLogger = logging.New("jwks_store_policy_controller")
 
-func NewJWKSStorePolicyController(apiClient apiclient.Client, agw *plugins.AgwCollections) *JwksStorePolicyController {
+func NewJWKSStorePolicyController(apiClient apiclient.Client, agw *plugins.AgwCollections, jwksUrlFactory func() jwks_url.JwksUrlBuilder) *JwksStorePolicyController {
 	polLogger.Info("creating jwks store policy controller")
 	return &JwksStorePolicyController{
-		agw:         agw,
-		apiClient:   apiClient,
-		jwksChanges: make(chan jwks.JwksSource),
+		agw:            agw,
+		apiClient:      apiClient,
+		jwksChanges:    make(chan jwks.JwksSource),
+		jwksUrlFactory: jwksUrlFactory,
 	}
 }
 
@@ -42,12 +46,10 @@ func (j *JwksStorePolicyController) Init(ctx context.Context) {
 		wellknown.AgentgatewayBackendGVR,
 		kclient.Filter{ObjectFilter: j.agw.Client.ObjectFilter()},
 	), j.agw.KrtOpts.ToOptions("AgentgatewayBackend")...)
-	policyCol := krt.WrapClient(kclient.NewFilteredDelayed[*agentgateway.AgentgatewayPolicy](
-		j.apiClient,
-		wellknown.AgentgatewayPolicyGVR,
-		kclient.Filter{ObjectFilter: j.agw.Client.ObjectFilter()},
-	), j.agw.KrtOpts.ToOptions("AgentgatewayPolicy")...)
-	j.jwks = krt.NewManyCollection(policyCol, func(kctx krt.HandlerContext, p *agentgateway.AgentgatewayPolicy) []jwks.JwksSource {
+
+	// TODO JwksSource should be per-policy, i.e. the same jwks url for multiple policies should result in multiple JwksSources
+	// Otherwise changes to one policy (removal for example) could result in disruption of traffic for other policies (while ConfigMaps are re-synced)
+	j.jwks = krt.NewManyCollection(j.agw.AgentgatewayPolicies, func(kctx krt.HandlerContext, p *agentgateway.AgentgatewayPolicy) []jwks.JwksSource {
 		toret := make([]jwks.JwksSource, 0)
 
 		// enqueue Traffic JWT providers (if present)
@@ -56,24 +58,17 @@ func (j *JwksStorePolicyController) Init(ctx context.Context) {
 				if provider.JWKS.Remote == nil {
 					continue
 				}
-				toret = append(toret, jwks.JwksSource{
-					JwksURL: provider.JWKS.Remote.JwksUri,
-					Ttl:     provider.JWKS.Remote.CacheDuration.Duration,
-				})
+
+				if s := j.buildJwksSource(kctx, p.Name, p.Namespace, provider.JWKS.Remote); s != nil {
+					toret = append(toret, *s)
+				}
 			}
 		}
 
 		// enqueue Backend MCP authentication JWKS (if present)
 		if p.Spec.Backend != nil && p.Spec.Backend.MCP != nil && p.Spec.Backend.MCP.Authentication != nil {
-			ttl := 5 * time.Minute
-			if p.Spec.Backend.MCP.Authentication.JWKS.CacheDuration != nil {
-				ttl = p.Spec.Backend.MCP.Authentication.JWKS.CacheDuration.Duration
-			}
-			if p.Spec.Backend.MCP.Authentication.JWKS.JwksUri != "" {
-				toret = append(toret, jwks.JwksSource{
-					JwksURL: p.Spec.Backend.MCP.Authentication.JWKS.JwksUri,
-					Ttl:     ttl,
-				})
+			if s := j.buildJwksSource(kctx, p.Name, p.Namespace, &p.Spec.Backend.MCP.Authentication.JWKS); s != nil {
+				toret = append(toret, *s)
 			}
 		}
 
@@ -84,15 +79,8 @@ func (j *JwksStorePolicyController) Init(ctx context.Context) {
 				continue
 			}
 			if b.Spec.Policies != nil && b.Spec.Policies.MCP != nil && b.Spec.Policies.MCP.Authentication != nil {
-				ttl := 5 * time.Minute
-				if b.Spec.Policies.MCP.Authentication.JWKS.CacheDuration != nil {
-					ttl = b.Spec.Policies.MCP.Authentication.JWKS.CacheDuration.Duration
-				}
-				if b.Spec.Policies.MCP.Authentication.JWKS.JwksUri != "" {
-					toret = append(toret, jwks.JwksSource{
-						JwksURL: b.Spec.Policies.MCP.Authentication.JWKS.JwksUri,
-						Ttl:     ttl,
-					})
+				if s := j.buildJwksSource(kctx, p.Name, p.Namespace, &p.Spec.Backend.MCP.Authentication.JWKS); s != nil {
+					toret = append(toret, *s)
 				}
 			}
 		}
@@ -101,7 +89,6 @@ func (j *JwksStorePolicyController) Init(ctx context.Context) {
 	}, j.agw.KrtOpts.ToOptions("JwksSources")...)
 
 	j.waitForSync = []cache.InformerSynced{
-		policyCol.HasSynced,
 		backendCol.HasSynced,
 	}
 }
@@ -137,4 +124,18 @@ func (j *JwksStorePolicyController) NeedLeaderElection() bool {
 
 func (j *JwksStorePolicyController) JwksChanges() chan jwks.JwksSource {
 	return j.jwksChanges
+}
+
+func (j *JwksStorePolicyController) buildJwksSource(krtctx krt.HandlerContext, policyName, defaultNS string, remoteProvider *agentgateway.RemoteJWKS) *jwks.JwksSource {
+	jwksUrl, tlsConfig, err := j.jwksUrlFactory().BuildJwksUrlAndTlsConfig(krtctx, policyName, defaultNS, remoteProvider)
+	if err != nil {
+		polLogger.Error("error generating remote jwks url or tls options", "error", err)
+		return nil
+	}
+
+	return &jwks.JwksSource{
+		JwksURL:   jwksUrl,
+		TlsConfig: tlsConfig,
+		Ttl:       remoteProvider.CacheDuration.Duration,
+	}
 }

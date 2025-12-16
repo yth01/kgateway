@@ -63,7 +63,7 @@ func TestSuccessfulJwksFetch(t *testing.T) {
 	f := NewJwksFetcher(NewJwksCache())
 	ctrl := gomock.NewController(t)
 	jwksClient := mocks.NewMockJwksHttpClient(ctrl)
-	f.jwksClient = jwksClient
+	f.defaultJwksClient = jwksClient
 
 	f.AddOrUpdateKeyset(JwksSource{JwksURL: "https://test/jwks", Ttl: 5 * time.Minute})
 	updates := f.SubscribeToUpdates()
@@ -104,7 +104,7 @@ func TestSuccessfulJwksFetchButNoChanges(t *testing.T) {
 	f := NewJwksFetcher(NewJwksCache())
 	ctrl := gomock.NewController(t)
 	jwksClient := mocks.NewMockJwksHttpClient(ctrl)
-	f.jwksClient = jwksClient
+	f.defaultJwksClient = jwksClient
 
 	f.AddOrUpdateKeyset(JwksSource{JwksURL: "https://test/jwks", Ttl: 5 * time.Minute})
 	f.cache.jwks["https://test/jwks"] = jwks
@@ -144,7 +144,7 @@ func TestFetchJwksWithError(t *testing.T) {
 	f := NewJwksFetcher(NewJwksCache())
 	ctrl := gomock.NewController(t)
 	jwksClient := mocks.NewMockJwksHttpClient(ctrl)
-	f.jwksClient = jwksClient
+	f.defaultJwksClient = jwksClient
 
 	f.AddOrUpdateKeyset(JwksSource{JwksURL: "https://test/jwks", Ttl: 5 * time.Minute})
 	updates := f.SubscribeToUpdates()

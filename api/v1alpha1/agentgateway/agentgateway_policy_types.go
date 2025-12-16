@@ -540,22 +540,21 @@ type JWKS struct {
 	Inline *string `json:"inline,omitempty"`
 }
 
-// +kubebuilder:validation:ExactlyOneOf=uri;backendRef
 type RemoteJWKS struct {
-	// IdP jwks endpoint. Default tls settings are used to connect to this url.
-	// +kubebuilder:validation:Pattern=`^(https|http):\/\/[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*(:\d+)?\/.*$`
-	// +optional
-	JwksUri string `json:"uri,omitempty"`
+	// Path to IdP jwks endpoint. Default tls settings are used to connect to this url.
+	// +required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=2000
+	JwksPath string `json:"jwksPath"`
 	// +optional
 	// +kubebuilder:validation:XValidation:rule="matches(self, '^([0-9]{1,5}(h|m|s|ms)){1,4}$')",message="invalid duration value"
 	// +kubebuilder:validation:XValidation:rule="duration(self) >= duration('5m')",message="cacheDuration must be at least 5m."
 	// +kubebuilder:default="5m"
 	CacheDuration *metav1.Duration `json:"cacheDuration,omitempty"`
 	// backendRef references the remote JWKS server to reach.
-	// Not implemented yet, only jwksUri is currently supported.
 	// Supported types: Service and Backend.
-	// +optional
-	BackendRef gwv1.BackendObjectReference `json:"backendRef,omitempty"`
+	// +required
+	BackendRef gwv1.BackendObjectReference `json:"backendRef"`
 }
 
 // +kubebuilder:validation:Enum=Strict;Optional

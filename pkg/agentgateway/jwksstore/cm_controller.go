@@ -20,6 +20,9 @@ import (
 	"github.com/kgateway-dev/kgateway/v2/pkg/logging"
 )
 
+// JwksStoreConfigMapsController is responsible for reliable synchronisation of internal jwks store state (jwks uri + jwks) to ConfigMaps.
+// A single ConfigMap is used to store all jwks for a given jwks url.
+
 var cmLogger = logging.New("jwks_store_config_map_controller")
 
 type JwksStoreConfigMapsController struct {
@@ -85,6 +88,8 @@ func (jcm *JwksStoreConfigMapsController) Start(ctx context.Context) error {
 		for {
 			select {
 			case u := <-jcm.jwksUpdates:
+				// TODO (dmitri-d) could add an interface for adding events directly to the queue
+				// jwks store and cm controller are tightly coupled anyway, this indirection isn't very useful
 				for uri := range u {
 					jcm.eventQueue.AddObject(jcm.newJwksStoreConfigMap(jwks.JwksConfigMapName(jcm.storePrefix, uri)))
 				}

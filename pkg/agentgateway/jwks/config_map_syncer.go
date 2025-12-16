@@ -29,7 +29,8 @@ func JwksStoreConfigMapLabel(storePrefix string) map[string]string {
 	return map[string]string{jwksStoreComponentLabel: storePrefix}
 }
 
-// configMapSyncer is used for writing/reading jwks' to/from ConfigMaps.
+// util-like functions to help with handling of ConfigMaps used to store jwks data.
+// TODO (dmitri-d) there's probably a better name for this file.
 type configMapSyncer struct {
 	storePrefix         string
 	deploymentNamespace string

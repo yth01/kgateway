@@ -32,6 +32,7 @@ import (
 
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/agentgateway"
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/shared"
+	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/jwks_url"
 	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/utils"
 	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/wellknown"
 	"github.com/kgateway-dev/kgateway/v2/pkg/logging"
@@ -532,7 +533,12 @@ func processJWTAuthenticationPolicy(ctx PolicyCtx, jwt *agentgateway.JWTAuthenti
 			continue
 		}
 		if r := pp.JWKS.Remote; r != nil {
-			inline, err := resolveRemoteJWKSInline(ctx, pp.JWKS.Remote.JwksUri)
+			jwksUrl, _, err := jwks_url.JwksUrlBuilderFactory().BuildJwksUrlAndTlsConfig(ctx.Krt, policy.Name, policy.Namespace, pp.JWKS.Remote)
+			if err != nil {
+				errs = append(errs, err)
+				continue
+			}
+			inline, err := resolveRemoteJWKSInline(ctx, jwksUrl)
 			if err != nil {
 				errs = append(errs, err)
 				continue

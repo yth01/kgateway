@@ -16,6 +16,7 @@ import (
 
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/agentgateway"
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/shared"
+	"github.com/kgateway-dev/kgateway/v2/pkg/agentgateway/jwks_url"
 	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/translator/sslutils"
 	"github.com/kgateway-dev/kgateway/v2/pkg/kgateway/wellknown"
 	"github.com/kgateway-dev/kgateway/v2/pkg/utils/kubeutils"
@@ -302,9 +303,14 @@ func translateBackendMCPAuthentication(ctx PolicyCtx, policy *agentgateway.Agent
 		idp = api.BackendPolicySpec_McpAuthentication_KEYCLOAK
 	}
 
-	translatedInlineJwks, err := resolveRemoteJWKSInline(ctx, authnPolicy.JWKS.JwksUri)
+	jwksUrl, _, err := jwks_url.JwksUrlBuilderFactory().BuildJwksUrlAndTlsConfig(ctx.Krt, policy.Name, policy.Namespace, &authnPolicy.JWKS)
 	if err != nil {
-		logger.Error("failed resolving jwks", "jwks_uri", authnPolicy.JWKS.JwksUri, "error", err)
+		logger.Error("failed resolving jwks url", "error", err)
+		return nil, err
+	}
+	translatedInlineJwks, err := resolveRemoteJWKSInline(ctx, jwksUrl)
+	if err != nil {
+		logger.Error("failed resolving jwks", "jwks_uri", jwksUrl, "error", err)
 		return nil, err
 	}
 
