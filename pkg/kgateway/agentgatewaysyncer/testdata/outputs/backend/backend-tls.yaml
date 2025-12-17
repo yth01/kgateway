@@ -107,6 +107,19 @@ Policies:
 - backend:
     backendTls:
       hostname: foo
+  key: default/ai-tls:backend-tls:default/ai-groups/anthropic
+  name:
+    kind: BackendTLSPolicy
+    name: ai-tls
+    namespace: default
+  target:
+    backend:
+      name: ai-groups
+      namespace: default
+      section: anthropic
+- backend:
+    backendTls:
+      hostname: foo
   key: default/ai-tls:backend-tls:default/openai-single
   name:
     kind: BackendTLSPolicy
@@ -129,6 +142,19 @@ Policies:
     service:
       hostname: mcp-svc.default.svc.cluster.local
       namespace: default
+- backend:
+    backendTls:
+      hostname: mcp-app.foo
+  key: default/mcp-tls-system-cert:backend-tls:default/mcp-backend/mcp-static
+  name:
+    kind: BackendTLSPolicy
+    name: mcp-tls-system-cert
+    namespace: default
+  target:
+    backend:
+      name: mcp-backend
+      namespace: default
+      section: mcp-static
 - backend:
     backendTls:
       hostname: mcp-app.foo
