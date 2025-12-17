@@ -170,7 +170,7 @@ func WithExtraManagerConfig(mgrConfigFuncs ...func(context.Context, manager.Mana
 	}
 }
 
-func WithExtraRunnables(runnables ...func(ctx context.Context, commoncol *collections.CommonCollections, agw *agwplugins.AgwCollections) manager.Runnable) func(*setup) {
+func WithExtraRunnables(runnables ...func(ctx context.Context, commoncol *collections.CommonCollections, agw *agwplugins.AgwCollections, s *apisettings.Settings) (bool, manager.Runnable)) func(*setup) {
 	return func(s *setup) {
 		s.extraRunnables = runnables
 	}
@@ -239,7 +239,7 @@ type setup struct {
 	// extra controller manager config, like adding registering additional controllers
 	extraManagerConfig []func(ctx context.Context, mgr manager.Manager, objectFilter kubetypes.DynamicObjectFilter) error
 	// extra Runnable to add to the manager
-	extraRunnables               []func(ctx context.Context, commoncol *collections.CommonCollections, agw *agwplugins.AgwCollections) manager.Runnable
+	extraRunnables               []func(ctx context.Context, commoncol *collections.CommonCollections, agw *agwplugins.AgwCollections, settings *apisettings.Settings) (bool, manager.Runnable)
 	krtDebugger                  *krt.DebugHandler
 	globalSettings               *apisettings.Settings
 	leaderElectionID             string
@@ -451,7 +451,10 @@ func (s *setup) Start(ctx context.Context) error {
 
 	runnablesRegistry := make(map[string]any)
 	for _, runnable := range s.extraRunnables {
-		r := runnable(ctx, commoncol, agwCollections)
+		enabled, r := runnable(ctx, commoncol, agwCollections, s.globalSettings)
+		if !enabled {
+			continue
+		}
 		if named, ok := r.(common.NamedRunnable); ok {
 			runnablesRegistry[named.RunnableName()] = struct{}{}
 		}
