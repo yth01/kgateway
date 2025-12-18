@@ -2,44 +2,63 @@ apiVersion: v1
 automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
+  annotations:
+    foo: |-
+      bar
+      attack
   labels:
-    app.kubernetes.io/instance: agentgateway
+    app.kubernetes.io/instance: gw
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: agentgateway
+    app.kubernetes.io/name: gw
     app.kubernetes.io/version: 1.0.0-ci1
-    gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: agentgateway
+    gateway.networking.k8s.io/gateway-class-name: agentgateway-v2
+    gateway.networking.k8s.io/gateway-name: gw
     kgateway: kube-gateway
-  name: agentgateway
+  name: gw
 ---
 apiVersion: v1
 data:
   config.yaml: |
-    config: {}
+    blah: |-
+      bar
+      attack
+    config:
+      logging:
+        format: |-
+          json
+          attack
 kind: ConfigMap
 metadata:
+  annotations:
+    foo: |-
+      bar
+      attack
   labels:
-    app.kubernetes.io/instance: agentgateway
+    app.kubernetes.io/instance: gw
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: agentgateway
+    app.kubernetes.io/name: gw
     app.kubernetes.io/version: 1.0.0-ci1
-    gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: agentgateway
+    gateway.networking.k8s.io/gateway-class-name: agentgateway-v2
+    gateway.networking.k8s.io/gateway-name: gw
     kgateway: kube-gateway
-  name: agentgateway
+  name: gw
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    foo: |-
+      bar
+      attack
   labels:
-    app.kubernetes.io/instance: agentgateway
+    app.kubernetes.io/instance: gw
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: agentgateway
+    app.kubernetes.io/name: gw
     app.kubernetes.io/version: 1.0.0-ci1
-    gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: agentgateway
+    gateway.networking.k8s.io/gateway-class-name: agentgateway-v2
+    gateway.networking.k8s.io/gateway-name: gw
     kgateway: kube-gateway
-  name: agentgateway
+  name: gw
 spec:
   ports:
   - name: listener-8080
@@ -47,9 +66,9 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    app.kubernetes.io/instance: agentgateway
-    app.kubernetes.io/name: agentgateway
-    gateway.networking.k8s.io/gateway-name: agentgateway
+    app.kubernetes.io/instance: gw
+    app.kubernetes.io/name: gw
+    gateway.networking.k8s.io/gateway-name: gw
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -57,34 +76,41 @@ status:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    foo: |-
+      bar
+      attack
   labels:
-    app.kubernetes.io/instance: agentgateway
+    app.kubernetes.io/instance: gw
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: agentgateway
+    app.kubernetes.io/name: gw
     app.kubernetes.io/version: 1.0.0-ci1
-    gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: agentgateway
+    gateway.networking.k8s.io/gateway-class-name: agentgateway-v2
+    gateway.networking.k8s.io/gateway-name: gw
     kgateway: kube-gateway
-  name: agentgateway
+  name: gw
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: agentgateway
-      app.kubernetes.io/name: agentgateway
-      gateway.networking.k8s.io/gateway-name: agentgateway
+      app.kubernetes.io/instance: gw
+      app.kubernetes.io/name: gw
+      gateway.networking.k8s.io/gateway-name: gw
   strategy: {}
   template:
     metadata:
       annotations:
-        checksum/config: 63173967f10317253d918f3354b522fc6d25c8f116d0201f34cc3bd72be3d496
+        checksum/config: 742e237f5e52d6e9ec5ec88bfbf17d33ca53da13d2eeb84a856ea88bf28d5533
+        foo: |-
+          bar
+          attack
         prometheus.io/path: /metrics
         prometheus.io/port: "15020"
         prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/instance: agentgateway
-        app.kubernetes.io/name: agentgateway
-        gateway.networking.k8s.io/gateway-class-name: agentgateway
-        gateway.networking.k8s.io/gateway-name: agentgateway
+        app.kubernetes.io/instance: gw
+        app.kubernetes.io/name: gw
+        gateway.networking.k8s.io/gateway-class-name: agentgateway-v2
+        gateway.networking.k8s.io/gateway-name: gw
     spec:
       containers:
       - args:
@@ -108,11 +134,11 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         - name: GW_NAME
-          value: agentgateway
+          value: gw
         - name: RUST_BACKTRACE
           value: "1"
         - name: RUST_LOG
-          value: debug
+          value: info
         - name: XDS_ADDRESS
           value: http://xds.cluster.local:9978
         - name: NAMESPACE
@@ -120,8 +146,11 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: GATEWAY
-          value: agentgateway
-        image: cr.agentgateway.dev/agentgateway:0.11.0-alpha.f0552ee66d6d9beddfca829dee1a029841c7bb43
+          value: gw
+        image: v1 attack/v1 attack:v1 attack@v1 attack
+        imagePullPolicy: |-
+          v1
+          attack
         name: agentgateway
         ports:
         - containerPort: 15020
@@ -161,11 +190,11 @@ spec:
         sysctls:
         - name: net.ipv4.ip_unprivileged_port_start
           value: "0"
-      serviceAccountName: agentgateway
+      serviceAccountName: gw
       terminationGracePeriodSeconds: 60
       volumes:
       - configMap:
-          name: agentgateway-config
+          name: gw
         name: config-volume
       - name: xds-token
         projected:
