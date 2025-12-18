@@ -35,12 +35,12 @@ If you're currently running both Envoy and agentgateway from the same kgateway i
 
 Agentgateway now has its own dedicated Helm charts, separate from the kgateway chart:
 
-| Component | Chart Location |
-|-----------|----------------|
-| **Agentgateway CRDs** | `oci://ghcr.io/kgateway-dev/charts/agentgateway-crds` |
-| **Agentgateway Controller** | `oci://ghcr.io/kgateway-dev/charts/agentgateway` |
+| Component | Chart Location                                            |
+|-----------|-----------------------------------------------------------|
+| **Agentgateway CRDs** | `oci://cr.agentgateway.dev/charts/agentgateway-crds`      |
+| **Agentgateway Controller** | `oci://cr.agentgateway.dev/charts/agentgateway`           |
 | **Kgateway CRDs (Envoy)** | `oci://cr.kgateway.dev/kgateway-dev/charts/kgateway-crds` |
-| **Kgateway (Envoy)** | `oci://cr.kgateway.dev/kgateway-dev/charts/kgateway` |
+| **Kgateway (Envoy)** | `oci://cr.kgateway.dev/kgateway-dev/charts/kgateway`      |
 
 
 This separation allows independent versioning and deployment of each data plane.
@@ -98,13 +98,13 @@ Agentgateway now has dedicated charts separate from kgateway. Install them in a 
 
 ```bash
 # Install agentgateway CRDs
-helm install agentgateway-crds oci://ghcr.io/kgateway-dev/charts/agentgateway-crds \
+helm install agentgateway-crds oci://cr.agentgateway.dev/charts/agentgateway-crds \
   --version v2.2.0-beta.3 \
   --namespace agentgateway-system \
   --create-namespace
 
 # Install agentgateway controller
-helm install agentgateway oci://ghcr.io/kgateway-dev/charts/agentgateway \
+helm install agentgateway oci://cr.agentgateway.dev/charts/agentgateway \
   --version v2.2.0-beta.3 \
   --namespace agentgateway-system
 ```
