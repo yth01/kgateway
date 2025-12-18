@@ -2086,6 +2086,13 @@ spec:
                                           - backendRef
                                           - jwksPath
                                           type: object
+                                        mode:
+                                          description: validation mode for JWT authentication.
+                                          enum:
+                                          - Strict
+                                          - Optional
+                                          - Permissive
+                                          type: string
                                         provider:
                                           description: McpIDP specifies the identity
                                             provider to use for authentication
@@ -3523,6 +3530,13 @@ spec:
                             - backendRef
                             - jwksPath
                             type: object
+                          mode:
+                            description: validation mode for JWT authentication.
+                            enum:
+                            - Strict
+                            - Optional
+                            - Permissive
+                            type: string
                           provider:
                             description: McpIDP specifies the identity provider to
                               use for authentication
