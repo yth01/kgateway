@@ -1764,6 +1764,14 @@ spec:
               mcp:
                 description: mcp represents an MCP backend
                 properties:
+                  sessionRouting:
+                    description: |-
+                      SessionRouting configures MCP session behavior for requests.
+                      Defaults to Stateful if not set.
+                    enum:
+                    - Stateful
+                    - Stateless
+                    type: string
                   targets:
                     description: |-
                       Targets is a list of MCPBackend targets to use for this backend.
