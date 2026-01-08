@@ -273,6 +273,40 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 			Name:      "agentgateway GKE with subsetting and external static IP",
 			InputFile: "agentgateway-gke-subsetting-static-ip",
 		},
+		{
+			Name:      "agentgateway with PodDisruptionBudget overlay",
+			InputFile: "agentgateway-pdb-overlay",
+			Validate: func(t *testing.T, outputYaml string) {
+				t.Helper()
+				assert.Contains(t, outputYaml, "kind: PodDisruptionBudget",
+					"PDB should be created when podDisruptionBudget overlay is specified")
+				assert.Contains(t, outputYaml, "pdb-label: from-overlay",
+					"PDB should have label from overlay")
+				assert.Contains(t, outputYaml, "pdb-annotation: from-overlay",
+					"PDB should have annotation from overlay")
+				assert.Contains(t, outputYaml, "minAvailable: 1",
+					"PDB should have minAvailable from overlay spec")
+			},
+		},
+		{
+			Name:      "agentgateway with HorizontalPodAutoscaler overlay",
+			InputFile: "agentgateway-hpa-overlay",
+			Validate: func(t *testing.T, outputYaml string) {
+				t.Helper()
+				assert.Contains(t, outputYaml, "kind: HorizontalPodAutoscaler",
+					"HPA should be created when horizontalPodAutoscaler overlay is specified")
+				assert.Contains(t, outputYaml, "hpa-label: from-overlay",
+					"HPA should have label from overlay")
+				assert.Contains(t, outputYaml, "hpa-annotation: from-overlay",
+					"HPA should have annotation from overlay")
+				assert.Contains(t, outputYaml, "minReplicas: 2",
+					"HPA should have minReplicas from overlay spec")
+				assert.Contains(t, outputYaml, "maxReplicas: 10",
+					"HPA should have maxReplicas from overlay spec")
+				assert.Contains(t, outputYaml, "averageUtilization: 80",
+					"HPA should have CPU utilization target from overlay spec")
+			},
+		},
 		// TLS test cases
 		{
 			Name:                        "basic gateway with TLS enabled",

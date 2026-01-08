@@ -187,6 +187,20 @@ type AgentgatewayParametersOverlays struct {
 	// serviceAccount allows specifying overrides for the generated ServiceAccount resource.
 	// +optional
 	ServiceAccount *KubernetesResourceOverlay `json:"serviceAccount,omitempty"`
+
+	// podDisruptionBudget allows creating a PodDisruptionBudget for the agentgateway proxy.
+	// If absent, no PDB is created. If present, a PDB is created with its selector
+	// automatically configured to target the agentgateway proxy Deployment.
+	// The metadata and spec fields from this overlay are applied to the generated PDB.
+	// +optional
+	PodDisruptionBudget *KubernetesResourceOverlay `json:"podDisruptionBudget,omitempty"`
+
+	// horizontalPodAutoscaler allows creating a HorizontalPodAutoscaler for the agentgateway proxy.
+	// If absent, no HPA is created. If present, an HPA is created with its scaleTargetRef
+	// automatically configured to target the agentgateway proxy Deployment.
+	// The metadata and spec fields from this overlay are applied to the generated HPA.
+	// +optional
+	HorizontalPodAutoscaler *KubernetesResourceOverlay `json:"horizontalPodAutoscaler,omitempty"`
 }
 
 type AgentgatewayParametersObjectMetadata struct {

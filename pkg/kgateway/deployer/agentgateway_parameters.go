@@ -116,9 +116,11 @@ func mergeEnvVars(base, override []corev1.EnvVar) []corev1.EnvVar {
 
 // ApplyOverlaysToObjects applies the strategic-merge-patch overlays to rendered k8s objects.
 // This is called after rendering the helm chart.
-func (a *AgentgatewayParametersApplier) ApplyOverlaysToObjects(objs []client.Object) error {
+// It returns the (potentially modified) slice of objects, as new objects may be added
+// (e.g., PodDisruptionBudget, HorizontalPodAutoscaler).
+func (a *AgentgatewayParametersApplier) ApplyOverlaysToObjects(objs []client.Object) ([]client.Object, error) {
 	if a.params == nil {
-		return nil
+		return objs, nil
 	}
 	applier := strategicpatch.NewOverlayApplier(a.params)
 	return applier.ApplyOverlays(objs)
