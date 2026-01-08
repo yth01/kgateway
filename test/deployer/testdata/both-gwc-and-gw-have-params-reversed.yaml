@@ -5,8 +5,7 @@ metadata:
   namespace: default
 spec:
   kube:
-    deployment:
-      replicas: 2
+    omitDefaultSecurityContext: true
 ---
 apiVersion: gateway.kgateway.dev/v1alpha1
 kind: GatewayParameters
@@ -15,7 +14,8 @@ metadata:
   namespace: default
 spec:
   kube:
-    omitDefaultSecurityContext: true
+    deployment:
+      replicas: 2
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
