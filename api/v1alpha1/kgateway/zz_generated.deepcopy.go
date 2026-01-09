@@ -2096,6 +2096,16 @@ func (in *HTTPSettings) DeepCopyInto(out *HTTPSettings) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.PreserveExternalRequestId != nil {
+		in, out := &in.PreserveExternalRequestId, &out.PreserveExternalRequestId
+		*out = new(bool)
+		**out = **in
+	}
+	if in.GenerateRequestId != nil {
+		in, out := &in.GenerateRequestId, &out.GenerateRequestId
+		*out = new(bool)
+		**out = **in
+	}
 	if in.XffNumTrustedHops != nil {
 		in, out := &in.XffNumTrustedHops, &out.XffNumTrustedHops
 		*out = new(int32)
