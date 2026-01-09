@@ -18,14 +18,22 @@ COPY ${RUSTFORMATIONS_DIR}/transformations/Cargo.toml ./transformations
 ARG PATCHED_SDK_DIR=patched-envoy-sdk
 COPY ${RUSTFORMATIONS_DIR}/${PATCHED_SDK_DIR} ${PATCHED_SDK_DIR}
 # END REMOVE
-ARG RUST_BUILD_ARCH=x86_64 # options are x86_64 or aarch64
+# Derive RUST_BUILD_ARCH from TARGETPLATFORM
+# TARGETPLATFORM is like "linux/amd64" or "linux/arm64"
+ARG TARGETPLATFORM
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    echo "aarch64" > /tmp/rust_arch; \
+    else \
+    echo "x86_64" > /tmp/rust_arch; \
+    fi
 # Because we built the dummy lib in this Stage to cache all the dependencies in docker layer cache
 # That unfortunately also cached the dummy libs, and in Stage 2 when we COPY, it preserved
 # the timestamps of the source code, so it never re-compile the real lib. Need to remove them
 # here
-RUN cargo fetch \
-    && cargo zigbuild --target ${RUST_BUILD_ARCH}-unknown-linux-gnu \
-    && find /build/target \( -name librust_module.so -o -name 'libtransformations*.rlib' \) -type f -delete
+RUN RUST_ARCH=$(cat /tmp/rust_arch) && \
+    cargo fetch && \
+    cargo zigbuild --target ${RUST_ARCH}-unknown-linux-gnu && \
+    find /build/target \( -name librust_module.so -o -name 'libtransformations*.rlib' \) -type f -delete
 
 # Stage 2: build envoy dynamic module
 FROM --platform=$TARGETPLATFORM ${CARGO_ZBUILD_IMAGE} AS rust_builder
@@ -35,14 +43,14 @@ RUN apt update && apt install -y clang
 # Copy cached target and cargo dirs from rust_build_deps from step 1
 COPY --from=rust_build_deps /usr/local/cargo /usr/local/cargo
 COPY --from=rust_build_deps /build/target /build/target
+COPY --from=rust_build_deps /tmp/rust_arch /tmp/rust_arch
 
 # Copy the source code and build the module.
 ARG RUSTFORMATIONS_DIR=./rustformations
 COPY ${RUSTFORMATIONS_DIR} .
-ARG RUST_BUILD_ARCH=x86_64 # set this to "aarch64" for local arm build
-RUN cargo zigbuild --target ${RUST_BUILD_ARCH}-unknown-linux-gnu
-
-RUN cp /build/target/${RUST_BUILD_ARCH}-unknown-linux-gnu/debug/librust_module.so /build/librust_module.so
+RUN RUST_ARCH=$(cat /tmp/rust_arch) && \
+    cargo zigbuild --target ${RUST_ARCH}-unknown-linux-gnu && \
+    cp /build/target/${RUST_ARCH}-unknown-linux-gnu/debug/librust_module.so /build/librust_module.so
 
 # Stage 3: build the final envoy wrapper image
 FROM --platform=$TARGETPLATFORM ${ENVOY_IMAGE} AS envoy
@@ -55,8 +63,8 @@ RUN apt-get update \
     && apt-get install wget ca-certificates -y \
     && rm -rf  /var/log/*log /var/lib/apt/lists/* /var/log/apt/* /var/lib/dpkg/*-old /var/cache/debconf/*-old
 
-ARG GOARCH=amd64
-COPY envoyinit-linux-$GOARCH /usr/local/bin/envoyinit
+ARG TARGETARCH
+COPY *envoyinit-linux-$TARGETARCH /usr/local/bin/envoyinit
 
 ENV ENVOY_DYNAMIC_MODULES_SEARCH_PATH=/usr/local/lib
 COPY --from=rust_builder /build/librust_module.so /usr/local/lib/librust_module.so
