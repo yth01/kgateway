@@ -246,15 +246,15 @@ spec:
         window: 10s
 `,
 			wantErrors: []string{
-				"spec.commonHttpProtocolOptions.idleTimeout: Invalid value: \"string\": invalid duration value",
-				"spec.commonHttpProtocolOptions.maxStreamDuration: Invalid value: \"string\": invalid duration value",
-				"spec.connectTimeout: Invalid value: \"string\": invalid duration value",
-				"spec.healthCheck.interval: Invalid value: \"string\": invalid duration value",
-				"spec.healthCheck.timeout: Invalid value: \"string\": invalid duration value",
-				"spec.loadBalancer.updateMergeWindow: Invalid value: \"string\": invalid duration value",
-				"spec.tcpKeepalive.keepAliveInterval: Invalid value: \"string\": invalid duration value",
-				"spec.tcpKeepalive.keepAliveInterval: Invalid value: \"string\": keepAliveInterval must be at least 1 second",
-				"spec.tcpKeepalive.keepAliveTime: Invalid value: \"string\": keepAliveTime must be at least 1 second",
+				"spec.commonHttpProtocolOptions.idleTimeout: Invalid value: \"1x\": invalid duration value",
+				"spec.commonHttpProtocolOptions.maxStreamDuration: Invalid value: \"abc\": invalid duration value",
+				"spec.connectTimeout: Invalid value: \"-1s\": invalid duration value",
+				"spec.healthCheck.interval: Invalid value: \"b\": invalid duration value",
+				"spec.healthCheck.timeout: Invalid value: \"a\": invalid duration value",
+				"spec.loadBalancer.updateMergeWindow: Invalid value: \"z\": invalid duration value",
+				"spec.tcpKeepalive.keepAliveInterval: Invalid value: \"0\": invalid duration value",
+				"spec.tcpKeepalive.keepAliveInterval: Invalid value: \"0\": keepAliveInterval must be at least 1 second",
+				"spec.tcpKeepalive.keepAliveTime: Invalid value: \"0s\": keepAliveTime must be at least 1 second",
 			},
 		},
 		{
@@ -493,7 +493,7 @@ spec:
     perTryTimeout: 1f
 `,
 			wantErrors: []string{
-				"spec.retry.perTryTimeout: Invalid value: \"string\": invalid duration value",
+				"spec.retry.perTryTimeout: Invalid value: \"1f\": invalid duration value",
 				"spec.retry.perTryTimeout: Invalid value: \"string\": type conversion error from 'string' to 'google.protobuf.Duration' evaluating rule: retry.perTryTimeout must be at least 1ms",
 			},
 		},
@@ -550,7 +550,7 @@ spec:
     request: foo
 `,
 			wantErrors: []string{
-				"spec.timeouts.request: Invalid value: \"string\": invalid duration value",
+				"spec.timeouts.request: Invalid value: \"foo\": invalid duration value",
 			},
 		},
 		{
@@ -565,7 +565,7 @@ spec:
     streamIdle: -1s
 `,
 			wantErrors: []string{
-				"spec.timeouts.streamIdle: Invalid value: \"string\": invalid duration value",
+				"spec.timeouts.streamIdle: Invalid value: \"-1s\": invalid duration value",
 			},
 		},
 		{

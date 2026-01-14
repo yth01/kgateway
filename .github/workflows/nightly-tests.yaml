@@ -83,7 +83,7 @@ jobs:
       fail-fast: false
       matrix:
         kube-version: [ { node: 'v1.30.13@sha256:397209b3d947d154f6641f2d0ce8d473732bd91c87d9575ade99049aa33cd648', kubectl: 'v1.30.14', kind: 'v0.29.0' },
-                        { node: 'v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a', kubectl: 'v1.34.1', kind: 'v0.30.0' }]
+                        { node: 'v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f', kubectl: 'v1.35.0', kind: 'v0.31.0' }]
     steps:
     - uses: actions/checkout@v4
       with:
