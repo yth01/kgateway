@@ -157,9 +157,12 @@ func configureAWSAuth(secret *ir.Secret, region string) (*envoy_request_signing_
 
 // lambdaFilters is a helper struct to store the lambda filters for the given backend.
 type lambdaFilters struct {
-	lambdaConfigAny      *anypb.Any
+	// +noKrtEquals
+	lambdaConfigAny *anypb.Any
+	// +noKrtEquals
 	awsRequestSigningAny *anypb.Any
-	codecConfigAny       *anypb.Any
+	// +noKrtEquals
+	codecConfigAny *anypb.Any
 }
 
 // Equals checks if two lambdaFilters objects are equal.

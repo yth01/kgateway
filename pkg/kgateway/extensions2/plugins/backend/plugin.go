@@ -37,7 +37,8 @@ type backendIr struct {
 	awsIr    *AwsIr
 	staticIr *StaticIr
 	dfpIr    *DfpIr
-	errors   []error
+	// +noKrtEquals
+	errors []error
 }
 
 func (u *backendIr) Equals(other any) bool {

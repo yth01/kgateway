@@ -16,7 +16,9 @@ import (
 
 // StaticIr is the internal representation of a static backend.
 type StaticIr struct {
-	clusterType    envoyclusterv3.Cluster_DiscoveryType
+	// +noKrtEquals
+	clusterType envoyclusterv3.Cluster_DiscoveryType
+	// +noKrtEquals
 	loadAssignment *envoyendpointv3.ClusterLoadAssignment
 }
 
