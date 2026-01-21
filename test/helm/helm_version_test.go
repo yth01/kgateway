@@ -180,6 +180,13 @@ func TestHelmChartTemplate(t *testing.T) {
   priorityClassName: system-cluster-critical
 `,
 		},
+		{
+			name: "additional-labels",
+			valuesYAML: `commonLabels:
+    extra-label-key: extra-label-value
+    another-label: "true"
+`,
+		},
 	}
 
 	for _, chart := range charts {
