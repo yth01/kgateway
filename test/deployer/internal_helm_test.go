@@ -151,6 +151,14 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 			InputFile: "envoy-infrastructure",
 		},
 		{
+			Name:      "envoy dns resolver params",
+			InputFile: "envoy-dns-resolver",
+		},
+		{
+			Name:      "envoy dns resolver disable",
+			InputFile: "envoy-dns-resolver-zero",
+		},
+		{
 			// The GW parametersRef merges with the GWC parametersRef.
 			// GWC has replicas:2, GW has omitDefaultSecurityContext:true.
 			// Both settings should appear in the output.
@@ -414,6 +422,7 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 	crdDir := filepath.Join(testutils.GitRootDirectory(), testutils.CRDPath)
 
 	VerifyAllYAMLFilesReferenced(t, filepath.Join(dir, "testdata"), tests)
+	VerifyAllEnvoyBootstrapAreValid(t, filepath.Join(dir, "testdata"))
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
