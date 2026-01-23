@@ -3,14 +3,14 @@ automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: kgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     kgateway: kube-gateway
-  name: gw
+  name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
 ---
 apiVersion: v1
 data:
@@ -26,9 +26,9 @@ data:
       - name: admin_layer
         admin_layer: {}
     node:
-      cluster: gw.default
+      cluster: very-long-gateway-name-that-is-exactly-sixty-three-characterslo.default
       metadata:
-        role: kgateway-kube-gateway-api~default~gw
+        role: kgateway-kube-gateway-api~default~very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     static_resources:
       listeners:
       - name: readiness_listener
@@ -215,27 +215,27 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: kgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     kgateway: kube-gateway
-  name: gw
+  name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: kgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     kgateway: kube-gateway
-  name: gw
+  name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
 spec:
   ports:
   - name: listener-8080
@@ -243,9 +243,9 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    app.kubernetes.io/instance: gw
-    app.kubernetes.io/name: gw
-    gateway.networking.k8s.io/gateway-name: gw
+    app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
+    app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
+    gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -254,33 +254,33 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: kgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
     kgateway: kube-gateway
-  name: gw
+  name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: gw
-      app.kubernetes.io/name: gw
-      gateway.networking.k8s.io/gateway-name: gw
+      app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
+      app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
+      gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
   strategy: {}
   template:
     metadata:
       annotations:
-        gateway.kgateway.dev/gateway-full-name: gw
+        gateway.kgateway.dev/gateway-full-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/instance: gw
-        app.kubernetes.io/name: gw
+        app.kubernetes.io/instance: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
+        app.kubernetes.io/name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
         gateway.networking.k8s.io/gateway-class-name: kgateway
-        gateway.networking.k8s.io/gateway-name: gw
+        gateway.networking.k8s.io/gateway-name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
         kgateway: kube-gateway
     spec:
       containers:
@@ -323,6 +323,14 @@ spec:
             port: 8082
           periodSeconds: 10
         resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 10101
         startupProbe:
           failureThreshold: 60
           httpGet:
@@ -337,7 +345,7 @@ spec:
         - mountPath: /var/run/secrets/tokens
           name: xds-token
           readOnly: true
-      serviceAccountName: gw
+      serviceAccountName: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
       terminationGracePeriodSeconds: 60
       volumes:
       - name: xds-token
@@ -348,6 +356,6 @@ spec:
               expirationSeconds: 43200
               path: xds-token
       - configMap:
-          name: gw
+          name: very-long-gateway-name-that-is-exactly-sixty-three-characterslo
         name: envoy-config
 status: {}

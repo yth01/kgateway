@@ -3,14 +3,14 @@ automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     kgateway: kube-gateway
-  name: gw
+  name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
 ---
 apiVersion: v1
 data:
@@ -19,27 +19,27 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     kgateway: kube-gateway
-  name: gw
+  name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     kgateway: kube-gateway
-  name: gw
+  name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
 spec:
   ports:
   - name: listener-8080
@@ -47,9 +47,9 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    app.kubernetes.io/instance: gw
-    app.kubernetes.io/name: gw
-    gateway.networking.k8s.io/gateway-name: gw
+    app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
+    app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
+    gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -58,34 +58,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app.kubernetes.io/instance: gw
+    app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/managed-by: kgateway
-    app.kubernetes.io/name: gw
+    app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     app.kubernetes.io/version: 1.0.0-ci1
     gateway.networking.k8s.io/gateway-class-name: agentgateway
-    gateway.networking.k8s.io/gateway-name: gw
+    gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     kgateway: kube-gateway
-  name: gw
+  name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: gw
-      app.kubernetes.io/name: gw
-      gateway.networking.k8s.io/gateway-name: gw
+      app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
+      app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
+      gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
   strategy: {}
   template:
     metadata:
       annotations:
-        checksum/config: bb8bdc8cacbd1ae4af6e9f72baafbd5859e9422ade140b725464c0ec0d7fee9d
-        gateway.kgateway.dev/gateway-full-name: gw
+        checksum/config: aaf5e2738c763c66015fbfc634d35ab6ccf946d18956c1ad787c730ba03aa5d4
+        gateway.kgateway.dev/gateway-full-name: extremely-long-gateway-name-that-exceeds-the-sixty-three-character-limit-imposed-by-kubernetes-dns-naming-requirements
         prometheus.io/path: /metrics
         prometheus.io/port: "15020"
         prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/instance: gw
-        app.kubernetes.io/name: gw
+        app.kubernetes.io/instance: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
+        app.kubernetes.io/name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
         gateway.networking.k8s.io/gateway-class-name: agentgateway
-        gateway.networking.k8s.io/gateway-name: gw
+        gateway.networking.k8s.io/gateway-name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
     spec:
       containers:
       - args:
@@ -119,7 +119,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: GATEWAY
-          value: gw
+          value: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
         - name: CPU_LIMIT
           valueFrom:
             resourceFieldRef:
@@ -173,11 +173,11 @@ spec:
         sysctls:
         - name: net.ipv4.ip_unprivileged_port_start
           value: "0"
-      serviceAccountName: gw
+      serviceAccountName: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
       terminationGracePeriodSeconds: 60
       volumes:
       - configMap:
-          name: gw
+          name: extremely-long-gateway-name-that-exceeds-the-sixty-ff41b39ff097
         name: config-volume
       - name: xds-token
         projected:
