@@ -13,7 +13,7 @@ package deployer
 // the API server.
 //
 // This means tests here accurately reflect what happens when users apply
-// AgentgatewayParameters with `kubectl apply --server-side`, helm 4 in default
+// GatewayParameters with `kubectl apply --server-side`, helm 4 in default
 // `--server-side` mode, Argo CD with ServerSideApply set to true, etc. If a
 // user uses regular `kubectl apply` with null values in overlay fields, the
 // nulls will be stripped and the strategic merge patch won't see them. That's
@@ -125,34 +125,6 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 			InputFile: "stats-matcher-exclusion",
 		},
 		{
-			Name:      "agentgateway",
-			InputFile: "agentgateway",
-		},
-		{
-			// Uses $patch: delete for pod-level and null for container-level securityContext
-			Name:      "agentgateway omit securityContext via $patch:delete and null AGWP via GWC",
-			InputFile: "agentgateway-omitdefaultsecuritycontext",
-			Validate:  EmptySecurityContextValidator(),
-		},
-		{
-			// Uses null for pod-level and $patch: delete for container-level securityContext
-			Name:      "agentgateway omit securityContext via null and $patch:delete AGWP via GW",
-			InputFile: "agentgateway-omitdefaultsecuritycontext-ref-gwp-on-gw",
-			Validate:  EmptySecurityContextValidator(),
-		},
-		{
-			Name:      "agentgateway-infrastructure with AgentgatewayParameters",
-			InputFile: "agentgateway-infrastructure",
-		},
-		{
-			Name:      "agentgateway-controller-but-custom-gatewayclass",
-			InputFile: "agentgateway-controller-but-custom-gatewayclass",
-		},
-		{
-			Name:      "envoy-controller-ignores-agentgateway-class-name",
-			InputFile: "envoy-controller-ignores-agentgateway-class-name",
-		},
-		{
 			Name:      "envoy-infrastructure",
 			InputFile: "envoy-infrastructure",
 		},
@@ -196,283 +168,6 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 					"loadBalancerClass should be set on the Service")
 				assert.Contains(t, outputYaml, "type: LoadBalancer",
 					"Service type should be LoadBalancer")
-			},
-		},
-		{
-			Name:      "agentgateway-params-primary",
-			InputFile: "agentgateway-params-primary",
-		},
-		{
-			Name:      "agentgateway with full image override",
-			InputFile: "agentgateway-image-override",
-		},
-		{
-			Name:      "agentgateway with env vars",
-			InputFile: "agentgateway-env",
-		},
-		{
-			Name:      "agentgateway with shutdown configuration",
-			InputFile: "agentgateway-shutdown",
-		},
-		{
-			Name:      "agentgateway with Istio configuration",
-			InputFile: "agentgateway-istio",
-		},
-		{
-			Name:      "agentgateway with logging format json",
-			InputFile: "agentgateway-logging-format",
-		},
-		{
-			Name:      "agentgateway yaml injection",
-			InputFile: "agentgateway-yaml-injection",
-		},
-		{
-			Name:      "agentgateway rawConfig with typed config conflict",
-			InputFile: "agentgateway-rawconfig-typed-conflict",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "format: text",
-					"typed logging.format: text should take precedence over rawConfig's json")
-				assert.NotContains(t, outputYaml, "format: json",
-					"rawConfig's logging.format: json should be overridden by typed config")
-				assert.Contains(t, outputYaml, "jaeger:4317",
-					"tracing config from rawConfig should be merged in")
-			},
-		},
-		{
-			Name:      "agentgateway rawConfig with binds for direct response",
-			InputFile: "agentgateway-rawconfig-binds",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "  config.yaml: |\n    binds:\n",
-					"binds config should be present in ConfigMap as a top-level config.yaml key")
-				assert.Contains(t, outputYaml, "port: 3000",
-					"binds port 3000 should be present")
-			},
-		},
-		{
-			Name:      "agentgateway with repository only image override",
-			InputFile: "agentgateway-image-repo-only",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.NotContains(t, outputYaml, "imagePullPolicy:",
-					"output YAML should not contain imagePullPolicy, allowing k8s to look at the tag to decide")
-			},
-		},
-		{
-			// Test merging GWC and GW AgentgatewayParameters.
-			Name:      "agentgateway both GWC and GW have parametersRef",
-			InputFile: "agentgateway-both-gwc-and-gw-have-params",
-		},
-		{
-			// Test deep merging of AgentgatewayParameters between GWC and GW.
-			// When GWC sets some fields and GW sets other fields within the same
-			// struct, the merging should preserve both.
-			Name:      "agentgateway deep merging - istio and resources fields",
-			InputFile: "agentgateway-deep-merging",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				// Istio field merging: GWC sets caAddress, GW sets trustDomain
-				assert.Contains(t, outputYaml, "https://my-custom-istiod.custom-namespace.svc:15012",
-					"caAddress from GatewayClass AGWP should be preserved when Gateway AGWP sets trustDomain")
-				assert.Contains(t, outputYaml, "my-custom-trust-domain",
-					"trustDomain from Gateway AGWP should be present")
-
-				// Resources field merging: GWC sets limits, GW sets requests
-				assert.Contains(t, outputYaml, "cpu: \"2\"",
-					"limits.cpu from GatewayClass AGWP should be preserved when Gateway AGWP sets requests")
-				assert.Contains(t, outputYaml, "memory: 1Gi",
-					"limits.memory from GatewayClass AGWP should be preserved when Gateway AGWP sets requests")
-				assert.Contains(t, outputYaml, "cpu: 500m",
-					"requests.cpu from Gateway AGWP should be present")
-				assert.Contains(t, outputYaml, "memory: 256Mi",
-					"requests.memory from Gateway AGWP should be present")
-			},
-		},
-		{
-			Name:      "agentgateway strategic-merge-patch tests",
-			InputFile: "agentgateway-strategic-merge-patch",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				// Deployment overlay metadata applied
-				assert.Contains(t, outputYaml, "deployment-overlay-annotation: from-overlay",
-					"deployment annotation from overlay should be present")
-				assert.Contains(t, outputYaml, "deployment-overlay-label1: from-overlay",
-					"deployment label from overlay should be present")
-
-				// $patch: delete on env var RUST_LOG
-				assert.NotContains(t, outputYaml, "RUST_LOG",
-					"RUST_LOG env var should be deleted via $patch: delete")
-
-				// $patch: replace on volumes - only custom-config volume in volumes list
-				// (volumeMounts is a separate list that still has the original mounts)
-				assert.Contains(t, outputYaml, "name: my-custom-config",
-					"custom configmap from $patch: replace should be present")
-				// Verify only one volume exists (the custom one) by checking volumes section structure
-				assert.Contains(t, outputYaml, "volumes:\n      - configMap:\n          name: my-custom-config\n        name: custom-config\nstatus:",
-					"volumes should be replaced with only custom-config")
-
-				// $patch: replace on service ports
-				assert.Contains(t, outputYaml, "port: 80",
-					"service port 80 from $patch: replace should be present")
-				assert.Contains(t, outputYaml, "port: 443",
-					"service port 443 from $patch: replace should be present")
-				// The original Gateway listener port 8080 becomes targetPort, not port
-				assert.NotContains(t, outputYaml, "port: 8080\n",
-					"default port 8080 should be replaced (only exists as targetPort now)")
-
-				// $setElementOrder/args - args reordered
-				assert.Contains(t, outputYaml, "- /config/config.yaml\n        - -f",
-					"args should be reordered via $setElementOrder")
-
-				// Service overlay annotation
-				assert.Contains(t, outputYaml, "service-overlay-annotation: from-overlay",
-					"service annotation from overlay should be present")
-
-				// Label nulled to empty string
-				assert.Contains(t, outputYaml, `app.kubernetes.io/managed-by: ""`,
-					"label should be nulled to empty string")
-
-				// Volume mount added via merge
-				assert.Contains(t, outputYaml, "mountPath: /etc/custom-config",
-					"custom volumeMount should be added via merge")
-			},
-		},
-		{
-			Name:      "agentgateway AGWP with pod scheduling fields",
-			InputFile: "agentgateway-agwp-pod-scheduling",
-		},
-		{
-			Name:      "agentgateway with static IP address via overlay",
-			InputFile: "agentgateway-loadbalancer-static-ip",
-		},
-		{
-			Name:      "agentgateway GKE with subsetting and external static IP",
-			InputFile: "agentgateway-gke-subsetting-static-ip",
-		},
-		{
-			Name:      "agentgateway with PodDisruptionBudget overlay",
-			InputFile: "agentgateway-pdb-overlay",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "kind: PodDisruptionBudget",
-					"PDB should be created when podDisruptionBudget overlay is specified")
-				assert.Contains(t, outputYaml, "pdb-label: from-overlay",
-					"PDB should have label from overlay")
-				assert.Contains(t, outputYaml, "pdb-annotation: from-overlay",
-					"PDB should have annotation from overlay")
-				assert.Contains(t, outputYaml, "minAvailable: 1",
-					"PDB should have minAvailable from overlay spec")
-			},
-		},
-		{
-			Name:      "agentgateway with HorizontalPodAutoscaler overlay",
-			InputFile: "agentgateway-hpa-overlay",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "kind: HorizontalPodAutoscaler",
-					"HPA should be created when horizontalPodAutoscaler overlay is specified")
-				assert.Contains(t, outputYaml, "hpa-label: from-overlay",
-					"HPA should have label from overlay")
-				assert.Contains(t, outputYaml, "hpa-annotation: from-overlay",
-					"HPA should have annotation from overlay")
-				assert.Contains(t, outputYaml, "minReplicas: 2",
-					"HPA should have minReplicas from overlay spec")
-				assert.Contains(t, outputYaml, "maxReplicas: 10",
-					"HPA should have maxReplicas from overlay spec")
-				assert.Contains(t, outputYaml, "averageUtilization: 80",
-					"HPA should have CPU utilization target from overlay spec")
-			},
-		},
-		// Cookbook recipe test cases - these validate the documented overlay examples
-		{
-			Name:      "agentgateway with replicas overlay",
-			InputFile: "agentgateway-replicas",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "replicas: 3",
-					"deployment should have 3 replicas from overlay")
-			},
-		},
-		{
-			Name:      "agentgateway with image pull secrets overlay",
-			InputFile: "agentgateway-image-pull-secrets",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "name: my-registry-secret",
-					"imagePullSecrets should contain my-registry-secret")
-				assert.Contains(t, outputYaml, "name: another-registry-secret",
-					"imagePullSecrets should contain another-registry-secret")
-			},
-		},
-		{
-			Name:      "agentgateway with AWS EKS load balancer annotations",
-			InputFile: "agentgateway-aws-annotations",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "service.beta.kubernetes.io/aws-load-balancer-type: nlb",
-					"service should have AWS NLB annotation")
-				assert.Contains(t, outputYaml, "service.beta.kubernetes.io/aws-load-balancer-internal: \"true\"",
-					"service should have AWS internal annotation")
-				assert.Contains(t, outputYaml, "service.beta.kubernetes.io/aws-load-balancer-subnets: subnet-abc123,subnet-def456",
-					"service should have AWS subnets annotation")
-			},
-		},
-		{
-			Name:      "agentgateway with Azure AKS load balancer annotations",
-			InputFile: "agentgateway-azure-annotations",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "service.beta.kubernetes.io/azure-load-balancer-internal: \"true\"",
-					"service should have Azure internal annotation")
-				assert.Contains(t, outputYaml, "service.beta.kubernetes.io/azure-load-balancer-resource-group: my-resource-group",
-					"service should have Azure resource group annotation")
-			},
-		},
-		{
-			Name:      "agentgateway with init containers overlay",
-			InputFile: "agentgateway-init-containers",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "name: wait-for-config",
-					"init container should be present")
-				assert.Contains(t, outputYaml, "image: busybox:1.36",
-					"init container should have correct image")
-				assert.Contains(t, outputYaml, "initContainers:",
-					"initContainers section should be present")
-			},
-		},
-		{
-			Name:      "agentgateway with sidecar containers overlay",
-			InputFile: "agentgateway-sidecar-containers",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "name: log-shipper",
-					"sidecar container should be present")
-				assert.Contains(t, outputYaml, "name: agentgateway",
-					"main agentgateway container should still be present")
-			},
-		},
-		{
-			Name:      "agentgateway with ServiceAccount IAM annotations",
-			InputFile: "agentgateway-sa-iam-annotations",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/agentgateway-role",
-					"ServiceAccount should have AWS IRSA annotation")
-			},
-		},
-		{
-			Name:      "agentgateway with custom pod security context",
-			InputFile: "agentgateway-security-context",
-			Validate: func(t *testing.T, outputYaml string) {
-				t.Helper()
-				assert.Contains(t, outputYaml, "runAsUser: 1000",
-					"pod security context should have runAsUser")
-				assert.Contains(t, outputYaml, "runAsGroup: 2000",
-					"pod security context should have runAsGroup")
-				assert.Contains(t, outputYaml, "fsGroup: 3000",
-					"pod security context should have fsGroup")
 			},
 		},
 		// Envoy (kgateway) overlay test cases
@@ -746,20 +441,6 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 			HelmValuesGeneratorOverride: tlsOverride(caCertPath),
 		},
 		{
-			Name:                        "agentgateway with TLS enabled",
-			InputFile:                   "agentgateway-tls",
-			HelmValuesGeneratorOverride: tlsOverride(caCertPath),
-		},
-		{
-			// Custom configmap name via AgentgatewayParameters deployment overlay:
-			Name:      "agentgateway with custom configmap name via overlay",
-			InputFile: "agentgateway-custom-configmap",
-		},
-		{
-			Name:      "agentgateway with Gateway.spec.addresses",
-			InputFile: "agentgateway-gateway-addresses",
-		},
-		{
 			Name:                        "gateway with istio enabled",
 			InputFile:                   "istio-enabled",
 			HelmValuesGeneratorOverride: istioOverride,
@@ -801,22 +482,12 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 			Name:      "gateway with name over 63 characters",
 			InputFile: "long-gateway-name-over-63-chars",
 		},
-		{
-			Name:      "agentgateway with name exactly 63 characters",
-			InputFile: "agentgateway-long-gateway-name-exactly-63-chars",
-		},
-		{
-			Name:      "agentgateway with name over 63 characters",
-			InputFile: "agentgateway-long-gateway-name-over-63-chars",
-		},
 	}
 
 	tester := DeployerTester{
 		ControllerName:    wellknown.DefaultGatewayControllerName,
-		AgwControllerName: wellknown.DefaultAgwControllerName,
 		ClassName:         wellknown.DefaultGatewayClassName,
 		WaypointClassName: wellknown.DefaultWaypointClassName,
-		AgwClassName:      wellknown.DefaultAgwClassName,
 	}
 
 	dir := fsutils.MustGetThisDir()
@@ -845,7 +516,7 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 // 3. Update this test's resource lists
 func TestDeployerManagedResourcesHaveRBACPermissions(t *testing.T) {
 	// Guard: if ResourceOverlays gains new fields, this test must be updated.
-	numFields := reflect.TypeOf(strategicpatch.ResourceOverlays{}).NumField()
+	numFields := reflect.TypeFor[strategicpatch.ResourceOverlays]().NumField()
 	require.Equal(t, 6, numFields,
 		"ResourceOverlays struct field count changed; update this test's resource lists "+
 			"and add +kubebuilder:rbac markers in doc.go for any new resource types")
@@ -883,13 +554,6 @@ func TestDeployerManagedResourcesHaveRBACPermissions(t *testing.T) {
 			name:      "kgateway",
 			roleFile:  filepath.Join(rootDir, "install/helm/kgateway/templates/role.yaml"),
 			resources: allOverlayResources, // kgateway supports all overlay types including VPA
-		},
-		{
-			name:     "agentgateway",
-			roleFile: filepath.Join(rootDir, "install/helm/agentgateway/templates/role.yaml"),
-			// Agentgateway supports all overlay types except VerticalPodAutoscaler
-			// (see strategicpatch.FromAgentgatewayParameters which sets VPA to nil)
-			resources: allOverlayResources[:len(allOverlayResources)-1],
 		},
 	}
 
