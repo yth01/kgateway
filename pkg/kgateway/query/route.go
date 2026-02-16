@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"istio.io/istio/pkg/kube/krt"
@@ -89,11 +90,11 @@ func (r *RouteInfo) Clone() *RouteInfo {
 	if r == nil {
 		return nil
 	}
-	// TODO (danehans): Why are hostnameOverrides not being cloned?
 	return &RouteInfo{
 		Object:            r.Object,
 		ParentRef:         r.ParentRef,
 		ListenerParentRef: r.ListenerParentRef,
+		HostnameOverrides: slices.Clone(r.HostnameOverrides),
 		Children:          r.Children,
 	}
 }
