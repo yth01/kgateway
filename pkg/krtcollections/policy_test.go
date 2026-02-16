@@ -376,8 +376,8 @@ func httpRouteWithBackendRef(refN, refNs string, port *gwv1.PortNumber) *gwv1.HT
 						{
 							BackendRef: gwv1.BackendRef{
 								BackendObjectReference: gwv1.BackendObjectReference{
-									Group:     ptr.To(gwv1.Group(wellknown.BackendGVK.Group)),
-									Kind:      ptr.To(gwv1.Kind(wellknown.BackendGVK.Kind)),
+									Group:     new(gwv1.Group(wellknown.BackendGVK.Group)),
+									Kind:      new(gwv1.Kind(wellknown.BackendGVK.Kind)),
 									Name:      gwv1.ObjectName(refN),
 									Namespace: ns,
 									Port:      port,

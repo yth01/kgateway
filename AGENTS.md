@@ -42,6 +42,10 @@ Example: `/pkg/kgateway/extensions2/plugins/trafficpolicy/traffic_policy_plugin.
 
 ## Critical Developer Patterns
 
+### go build tag e2e
+
+If you intend to include all source code, run 'go' commands that accept '-tags' with '-tags e2e'.
+
 ### IR Equals() Methods (STRICTLY ENFORCED)
 IRs output by KRT collections **must** implement `Equals(other T) bool`:
 - **Compare ALL fields** or mark with `// +noKrtEquals` (last line of comment)
