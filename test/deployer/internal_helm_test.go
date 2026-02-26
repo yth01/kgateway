@@ -171,6 +171,21 @@ wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBtestcertdata
 			},
 		},
 		{
+			Name:      "gateway with loadBalancerSourceRanges",
+			InputFile: "loadbalancer-source-ranges-api",
+			Validate: func(t *testing.T, outputYaml string) {
+				t.Helper()
+				assert.Contains(t, outputYaml, "loadBalancerSourceRanges:",
+					"loadBalancerSourceRanges should be set on the Service")
+				assert.Contains(t, outputYaml, "- 10.0.0.0/8",
+					"first CIDR range should be present")
+				assert.Contains(t, outputYaml, "- 192.168.0.0/16",
+					"second CIDR range should be present")
+				assert.Contains(t, outputYaml, "type: LoadBalancer",
+					"Service type should be LoadBalancer")
+			},
+		},
+		{
 			Name:      "gateway with loadBalancerSourceRanges via overlay",
 			InputFile: "loadbalancer-source-ranges",
 			Validate: func(t *testing.T, outputYaml string) {
