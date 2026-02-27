@@ -59,7 +59,7 @@ jobs:
             VERSION="${{ inputs.version }}"
             # Validate semver format. Modified version from the recommended semver format.
             # See https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string.
-            if ! echo "$VERSION" | grep -E "^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-((0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$" > /dev/null; then
+            if ! echo "$VERSION" | grep -q -i -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-z-][0-9a-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-z-][0-9a-z-]*))*))?(\+([0-9a-z-]+(\.[0-9a-z-]+)*))?$'; then
               echo "Error: Version '$VERSION' does not match required semver format (e.g., v1.2.3, v2.0.0-alpha.1)"
               exit 1
             fi
