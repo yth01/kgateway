@@ -16,13 +16,20 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/kgateway-dev/kgateway/v2/api/v1alpha1/kgateway"
 	"github.com/kgateway-dev/kgateway/v2/pkg/pluginsdk/ir"
+	"github.com/kgateway-dev/kgateway/v2/pkg/version"
 )
 
 func TestTracingConverter(t *testing.T) {
+	// Set version for testing (normally set via ldflags at build time)
+	origVersion := version.Version
+	version.Version = "v1.0.0-test"
+	t.Cleanup(func() { version.Version = origVersion })
+
 	t.Run("Tracing Conversion", func(t *testing.T) {
 		testCases := []struct {
 			name     string
@@ -62,6 +69,14 @@ func TestTracingConverter(t *testing.T) {
 									},
 								},
 								ServiceName: "gw.default",
+								ResourceDetectors: []*envoycorev3.TypedExtensionConfig{{
+									Name: "envoy.tracers.opentelemetry.resource_detectors.static_config",
+									TypedConfig: mustMessageToAny(t, &resource_detectorsv3.StaticConfigResourceDetectorConfig{Attributes: map[string]string{
+										"service.namespace":   "default",
+										"service.instance.id": "test-uid-1234",
+										"service.version":     "v1.0.0-test",
+									}}),
+								}},
 							}),
 						},
 					},
@@ -96,6 +111,14 @@ func TestTracingConverter(t *testing.T) {
 									},
 								},
 								ServiceName: "gw.default",
+								ResourceDetectors: []*envoycorev3.TypedExtensionConfig{{
+									Name: "envoy.tracers.opentelemetry.resource_detectors.static_config",
+									TypedConfig: mustMessageToAny(t, &resource_detectorsv3.StaticConfigResourceDetectorConfig{Attributes: map[string]string{
+										"service.namespace":   "default",
+										"service.instance.id": "test-uid-1234",
+										"service.version":     "v1.0.0-test",
+									}}),
+								}},
 							}),
 						},
 					},
@@ -130,6 +153,14 @@ func TestTracingConverter(t *testing.T) {
 									},
 								},
 								ServiceName: "gw.default",
+								ResourceDetectors: []*envoycorev3.TypedExtensionConfig{{
+									Name: "envoy.tracers.opentelemetry.resource_detectors.static_config",
+									TypedConfig: mustMessageToAny(t, &resource_detectorsv3.StaticConfigResourceDetectorConfig{Attributes: map[string]string{
+										"service.namespace":   "default",
+										"service.instance.id": "test-uid-1234",
+										"service.version":     "v1.0.0-test",
+									}}),
+								}},
 							}),
 						},
 					},
@@ -250,6 +281,13 @@ func TestTracingConverter(t *testing.T) {
 								},
 								ServiceName: "my:service",
 								ResourceDetectors: []*envoycorev3.TypedExtensionConfig{{
+									Name: "envoy.tracers.opentelemetry.resource_detectors.static_config",
+									TypedConfig: mustMessageToAny(t, &resource_detectorsv3.StaticConfigResourceDetectorConfig{Attributes: map[string]string{
+										"service.namespace":   "default",
+										"service.instance.id": "test-uid-1234",
+										"service.version":     "v1.0.0-test",
+									}}),
+								}, {
 									Name:        "envoy.tracers.opentelemetry.resource_detectors.environment",
 									TypedConfig: mustMessageToAny(t, &resource_detectorsv3.EnvironmentResourceDetectorConfig{}),
 								}},
@@ -404,6 +442,12 @@ func TestTracingConverter(t *testing.T) {
 							ObjectSource: ir.ObjectSource{
 								Namespace: "default",
 								Name:      "gw",
+							},
+							Obj: &gwv1.Gateway{
+								ObjectMeta: metav1.ObjectMeta{
+									UID:        "test-uid-1234",
+									Generation: 7,
+								},
 							},
 						},
 					},
