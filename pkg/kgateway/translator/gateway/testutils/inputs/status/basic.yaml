@@ -157,6 +157,7 @@ apiVersion: gateway.kgateway.dev/v1alpha1
 kind: DirectResponse
 metadata:
   name: not-found-response
+  generation: 1
 spec:
   status: 404
   body: "The requested resource was not found on this server."
