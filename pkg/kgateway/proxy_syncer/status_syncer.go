@@ -528,11 +528,11 @@ func (s *StatusSyncer) syncPolicyStatus(ctx context.Context, rm reports.ReportMa
 			continue
 		}
 		if plugin.GetPolicyStatus == nil {
-			logger.Error("GetPolicyStatus handler not registered for policy", "group_kind", gk, "resource", nsName) //nolint:sloglint // ignore PascalCase at start
+			logger.Debug("GetPolicyStatus handler not registered for policy", "group_kind", gk, "resource", nsName) //nolint:sloglint // ignore PascalCase at start
 			continue
 		}
 		if plugin.PatchPolicyStatus == nil {
-			logger.Error("PatchPolicyStatus handler not registered for policy", "group_kind", gk, "resource", nsName) //nolint:sloglint // ignore PascalCase at start
+			logger.Debug("PatchPolicyStatus handler not registered for policy", "group_kind", gk, "resource", nsName) //nolint:sloglint // ignore PascalCase at start
 			continue
 		}
 		currentStatus, err := plugin.GetPolicyStatus(ctx, nsName)
